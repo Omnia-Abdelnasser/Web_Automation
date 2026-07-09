@@ -1,0 +1,658 @@
+{
+  "info": {
+    "_postman_id": "c195823f-0732-4ca5-8adb-00bb6dc26e78",
+    "name": "Api_Testing",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56455223",
+    "_collection_link": "https://go.postman.co/collection/56455223-c195823f-0732-4ca5-8adb-00bb6dc26e78?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "register",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "customer_group_id ",
+                  "value": "1",
+                  "type": "text",
+                  "uuid": "7815d618-0c76-4d6c-a526-998e70cb74ed"
+                },
+                {
+                  "key": "firstname",
+                  "value": "menaaa",
+                  "type": "text",
+                  "uuid": "6c613496-388b-428e-a5b2-a646fd4eff13"
+                },
+                {
+                  "key": "lastname",
+                  "value": "naasser",
+                  "type": "text",
+                  "uuid": "a58416c1-d811-46a3-a67d-453681258917"
+                },
+                {
+                  "key": "email",
+                  "value": "menashd@gmail.com",
+                  "type": "text",
+                  "uuid": "8852bc84-0019-42cf-9b96-ad1c5bb2580b"
+                },
+                {
+                  "key": "telephone",
+                  "value": "1111111111",
+                  "type": "text",
+                  "uuid": "f36a1541-ff80-41fe-acfa-45e2c851305f"
+                },
+                {
+                  "key": "password",
+                  "value": "11111111",
+                  "type": "text",
+                  "uuid": "6dafa49d-eb18-47ed-8750-f93c45838a18"
+                },
+                {
+                  "key": "confirm",
+                  "value": "11111111",
+                  "type": "text",
+                  "uuid": "342b788b-8d1e-49f6-9ee2-aefa15d8ee3c"
+                },
+                {
+                  "key": "newsletter",
+                  "value": "1",
+                  "type": "text",
+                  "uuid": "f87f6b99-27d7-4ecd-a8bd-43ddde3b1ea1"
+                },
+                {
+                  "key": "agree ",
+                  "value": "1",
+                  "type": "text",
+                  "uuid": "376e5fa4-30ac-4c38-8e49-fe8c666567f3"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=account/register",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "omniaabdelnasser067@gmail.com",
+                  "type": "text",
+                  "uuid": "198d1165-4c42-4802-bf96-286e21e231ba"
+                },
+                {
+                  "key": "password",
+                  "value": "11111111",
+                  "type": "text",
+                  "uuid": "041c7bd0-879e-4478-a438-c36002a89818"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=account/login",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forgetPassword",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "omniaabdelnasser067@gmail.com",
+                  "type": "text",
+                  "uuid": "198d1165-4c42-4802-bf96-286e21e231ba"
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "041c7bd0-879e-4478-a438-c36002a89818"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=account/forgotten",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "forgotten"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=account/logout",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "My_account",
+      "item": [
+        {
+          "name": "get_MyAccount",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=account/account",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "account"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "edit_Myaccount",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "lastname",
+                  "value": "abdelnassser",
+                  "type": "text",
+                  "uuid": "c7f40458-14a7-40d2-ae35-bd079d8d4565"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=account/edit",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "edit"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "item": [
+        {
+          "name": "getProducts",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {}
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=product/category&path=25_28",
+              "host": [
+                "{{Base_Url}}route=product"
+              ],
+              "path": [
+                "category&path=25_28"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getOneProduct",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=product/product&product_id=43",
+              "host": [
+                "{{Base_Url}}route=product"
+              ],
+              "path": [
+                "product&product_id=43"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "wishList",
+      "item": [
+        {
+          "name": "addProductToWishlist",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "product_id",
+                  "value": "31",
+                  "type": "text",
+                  "uuid": "ad10fa59-924a-4613-928e-f1cf8a603432"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=account/wishlist/add",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "wishlist",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getMyWishlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=account/wishlist",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "wishlist"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "removefromWishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=account/wishlist&remove=30",
+              "host": [
+                "{{Base_Url}}route=account"
+              ],
+              "path": [
+                "wishlist&remove=30"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "addToCart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "product_id",
+                  "value": "43",
+                  "type": "text",
+                  "uuid": "f1bfcd1f-097d-4425-98d9-f8e2edac41c4"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/cart/add",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "cart",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getCart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/cart",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "aditqantityofproduct",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "quantity[23322]",
+                  "value": "10",
+                  "type": "text",
+                  "uuid": "d55e7b68-667b-44ca-9c2c-6553e01dea25"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/cart/edit",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "cart",
+                "edit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteProductFromCart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "key",
+                  "value": "23322",
+                  "type": "text",
+                  "uuid": "32663a22-d49f-4584-b53b-c5202c5275a9"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/cart/remove",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "cart",
+                "remove"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "checkout",
+      "item": [
+        {
+          "name": "getCheckout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/checkout",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "checkout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PaymentAddress",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "payment_address",
+                  "value": "existing",
+                  "type": "text",
+                  "uuid": "978ddbfb-857c-4a09-8645-2667e14a8ac5"
+                },
+                {
+                  "key": "address_id",
+                  "value": "2647",
+                  "type": "text",
+                  "uuid": "47a6472b-14e6-445c-8a5c-8309aed09377"
+                },
+                {
+                  "key": "country_id",
+                  "value": "222",
+                  "type": "text",
+                  "uuid": "873f45a2-f395-4b28-83ef-2d0d04f90c06"
+                },
+                {
+                  "key": "zone_id",
+                  "value": "3527",
+                  "type": "text",
+                  "uuid": "d5dc303a-0b19-4403-a4f4-33a0e9ca2b31"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/payment_address/save",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "payment_address",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "shippingAddress",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "shipping_address",
+                  "value": "existing",
+                  "type": "text",
+                  "uuid": "6f6a3a76-ab32-4e0f-b9a1-e471e1cf84a4"
+                },
+                {
+                  "key": "address_id",
+                  "value": "2647",
+                  "type": "text",
+                  "uuid": "ec92ab2a-0200-46c5-b99a-fbc46f084724"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/shipping_address/save",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "shipping_address",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "shippingMethod",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "shipping_method",
+                  "value": "flat.flat",
+                  "type": "text",
+                  "uuid": "978ddbfb-857c-4a09-8645-2667e14a8ac5"
+                },
+                {
+                  "key": "comment",
+                  "value": "dhdvdjhbdkjfd",
+                  "type": "text",
+                  "uuid": "47a6472b-14e6-445c-8a5c-8309aed09377"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/shipping_method/save",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "shipping_method",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Payment_Method",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=checkout/payment_method/save",
+              "host": [
+                "{{Base_Url}}route=checkout"
+              ],
+              "path": [
+                "payment_method",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "confirmOrder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{Base_Url}}route=extension/payment/cod/confirm",
+              "host": [
+                "{{Base_Url}}route=extension"
+              ],
+              "path": [
+                "payment",
+                "cod",
+                "confirm"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "Base_Url",
+      "value": ""
+    }
+  ]
+}

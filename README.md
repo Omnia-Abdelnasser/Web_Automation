@@ -31,6 +31,9 @@ This is a comprehensive Web Automation Testing project built as a Graduation Pro
 ```text
 Graduation_pro/
 │
+├── api testing/                # Postman API testing collection
+│   └── Api_Testing.postman_collection.json
+│
 ├── presentation/               # Interactive HTML defense presentation & assets
 │   ├── presentation.html       # The main presentation file
 │   └── ...                     # Presentation assets (images, screenshots)
