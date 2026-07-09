@@ -10,7 +10,7 @@ This is a comprehensive Web Automation Testing project built as a Graduation Pro
 *   **Omnia Abdenasser Mohamed**
 *   **Alaa Mahmoud omran**
 *   **Ahemd Tamer Elromy**
-*   **Asseem mostafa fouad**
+*   **Assem mostafa fouad**
 *   **Mohamed Fawzy**
 
 ---
