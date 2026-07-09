@@ -32,4 +32,5 @@ public class WaitUtils {
                 ExpectedConditions.elementToBeClickable(locator)
         );
     }
+
 }

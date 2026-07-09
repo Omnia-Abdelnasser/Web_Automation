@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Graduation Project Suite">
+    
+    <!-- Group 1: 20 Excel Test Cases (Ordered sequentially) -->
+    <test name="Excel Test Cases (1 to 20)" preserve-order="true">
+        <classes>
+            <class name="tests.TC_01_UpdateAccountTest" />
+            <class name="tests.TC_02_ChangePasswordTest" />
+            <class name="tests.TC_03_NewsletterTest" />
+            <class name="tests.TC_04_AddressBookTest" />
+            <class name="tests.TC_05_ProductReviewTest" />
+            <class name="tests.TC_06_OrderHistoryTest" />
+            <class name="tests.TC_07_GiftCertificateTest" />
+            <class name="tests.TC_08_ReturnProductTest" />
+            <class name="tests.TC_09_ContactUsTest" />
+            <class name="tests.TC_10_SearchNoResultTest" />
+            <class name="tests.TC_11_SortByCategoryTest" />
+            <class name="tests.TC_12_ProductsPerPageTest" />
+            <class name="tests.TC_13_GridListViewTest" />
+            <class name="tests.TC_14_ProductDetailsTest" />
+            <class name="tests.TC_15_UpdateQuantityTest" />
+            <class name="tests.TC_16_RemoveProductTest" />
+            <class name="tests.TC_17_CouponCodeTest" />
+            <class name="tests.TC_18_EstimateShippingTest" />
+            <class name="tests.TC_19_ForgotPasswordNegativeTest" />
+            <class name="tests.TC_20_FooterLinksTest" />
+        </classes>
+    </test>
+    
+    <!-- Group 2: The Other 12 Test Cases (No specific order required) -->
+    <test name="Other 12 Project Test Cases" preserve-order="true">
+        <classes>
+            <class name="tests.auto_1_RegisterTest" />
+            <class name="tests.auto_2_LoginTest" />
+            <class name="tests.auto_3_ForgotPasswordTest" />
+            <class name="tests.auto_4_ProductSearchTest" />
+            <class name="tests.auto_5_CurrencySwitchTest" />
+            <class name="tests.auto_6_RandomCategoryTest" />
+            <class name="tests.auto_7_HoverCategoryTest" />
+            <class name="tests.auto_8_LoggedUserCategoryTest" />
+            <class name="tests.auto_9_WishlistTest" />
+            <class name="tests.auto_10_CompareListTest" />
+            <class name="tests.auto_11_AddToCartTest" />
+            <class name="tests.auto_12_CheckoutTest" />
+        </classes>
+    </test>
+    
+</suite>
