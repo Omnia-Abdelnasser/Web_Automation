@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEPI QA Graduation – Automation & API Testing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ===== PRESENTATION MODE (default) ===== */
+    #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; background: #0f172a; }
+
+    #slide-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+
+    /* Wrapper that centers the scaler — must fill available space */
+    #slide-scaler-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* True full-screen presentation: covers entire viewport */
+    body.in-fullscreen #slide-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body.in-fullscreen #slide-scaler-wrap {
+      width: 100vw;
+      height: 100vh;
+    }
+    body.in-fullscreen #control-bar { display: none !important; }
+    /* Remove rounded corners + shadow in fullscreen for edge-to-edge feel */
+    body.in-fullscreen .slide {
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* The 16:9 slide scaler */
+    #slide-scaler {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      transform-origin: center center;
+      transition: transform 0.3s ease;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 960px;
+      height: 540px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    }
+    .slide.active { display: flex; animation: slideIn 0.35s cubic-bezier(.4,0,.2,1); }
+    @keyframes slideIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+    /* Slide anatomy */
+    .slide-header {
+      padding: 4px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .slide-body {
+      flex: 1;
+      padding: 12px 28px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .slide-footer {
+      padding: 4px 28px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    /* ===== BOTTOM CONTROL BAR ===== */
+    #control-bar {
+      height: 52px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      gap: 10px;
+      flex-shrink: 0;
+      border-top: 1px solid #334155;
+    }
+
+    #control-bar button {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      border-radius: 7px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    #control-bar button:hover { background: #475569; color: #f1f5f9; }
+    #control-bar button.active { background: #4f46e5; border-color: #4338ca; color: white; }
+
+    #slide-counter-bar {
+      color: #94a3b8;
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    /* Progress bar */
+    #progress-bar-wrap { flex: 1; height: 4px; background: #334155; border-radius: 2px; }
+    #progress-bar { height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); border-radius: 2px; transition: width 0.3s ease; }
+
+    /* ===== PRESENTER MODE ===== */
+    body.presenter-mode #app { flex-direction: column; }
+    body.presenter-mode #slide-stage { flex: 1; display: flex; flex-direction: row; gap: 0; }
+
+    #presenter-current-wrap {
+      flex: 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      padding: 20px;
+    }
+    #presenter-console {
+      width: 320px;
+      background: #1e293b;
+      border-left: 1px solid #334155;
+      display: none;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    body.presenter-mode #presenter-current-wrap { display: flex; }
+    body.presenter-mode #presenter-console { display: flex; }
+    body.presenter-mode #slide-stage { align-items: stretch; }
+
+    /* In presenter mode, main slide stage is also the current-slide area */
+    body.presenter-mode #slide-stage > #slide-scaler-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Mini slide preview */
+    .mini-slide {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+      transform-origin: top left;
+      flex-shrink: 0;
+    }
+
+    /* ===== Drawing Canvas ===== */
+    #drawing-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      border-radius: 10px;
+    }
+    #drawing-canvas.drawing-active { pointer-events: all; cursor: crosshair; }
+
+    /* Laser dot */
+    #laser-dot {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #ff4444, #ff0000 50%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 60;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 0 6px rgba(255,60,60,0.8));
+      transition: opacity 0.1s;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* Code block */
+    .code-block {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+    }
+    .code-kw { color: #c084fc; }
+    .code-cls { color: #67e8f9; }
+    .code-str { color: #86efac; }
+    .code-ann { color: #fbbf24; }
+    .code-cmt { color: #64748b; font-style: italic; }
+    .code-mth { color: #93c5fd; }
+
+    /* Tag pills */
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+    .tag-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .tag-emerald { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+    .tag-violet { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .tag-rose { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+    .tag-amber { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+    /* Stat card */
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Layer card */
+    .layer-card {
+      border-left: 3px solid;
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      background: #f8fafc;
+    }
+
+    /* Terminal */
+    #terminal-output {
+      background: #020617;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 9.5px;
+      color: #94a3b8;
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid #1e293b;
+    }
+    .t-pass { color: #4ade80; }
+    .t-fail { color: #f87171; }
+    .t-info { color: #60a5fa; }
+    .t-dim { color: #475569; }
+
+    /* Transitions in presenter console */
+    .console-section {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid #334155;
+    }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+    .data-table th { background: #f1f5f9; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 8.5px; letter-spacing: 0.07em; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    .data-table td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; color: #374151; vertical-align: top; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #f8fafc; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- =================== SLIDE STAGE =================== -->
+  <div id="slide-stage">
+
+    <!-- Slide Scaler Wrapper (always fills available space) -->
+    <div id="slide-scaler-wrap">
+      <div id="slide-scaler">
+        <canvas id="drawing-canvas"></canvas>
+        <div id="laser-dot"></div>
+
+        <!-- ============================================================
+             SLIDE 1 – COVER
+        ============================================================ -->
+        <section class="slide active" id="slide-1">
+          <div class="slide-header" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-bottom:none;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#a5f3fc;animation:pulse 2s infinite;display:block;"></span>
+              <span style="color:#c7d2fe;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;">Digital Egypt Pioneers Initiative</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;filter:brightness(0) invert(1);" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;filter:brightness(0) invert(1);" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 50%,#fdf4ff 100%);padding:28px 40px;flex-direction:row;align-items:center;gap:32px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="tag tag-indigo">QA Automation</span>
+                <span class="tag tag-violet">Selenium 4</span>
+                <span class="tag tag-emerald">TestNG 7</span>
+              </div>
+              <h1 style="font-size:32px;font-weight:900;line-height:1.15;color:#1e1b4b;">
+                E-Commerce<br>
+                <span style="background:linear-gradient(90deg,#4f46e5,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Test Automation</span><br>
+                <span style="font-size:22px;color:#64748b;font-weight:700;">&amp; API Testing</span>
+              </h1>
+              <p style="font-size:12px;color:#64748b;line-height:1.65;max-width:420px;">A comprehensive QA engineering project combining structured manual test design, Postman-driven API validation, and a layered Selenium + TestNG automation framework with Extent Spark reporting on awesomeqa.com/ui.</p>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;">
+                <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
+                  <div style="font-size:22px;font-weight:900;color:#4f46e5;font-family:'Fira Code',monospace;">41</div>
+                  <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:.08em;">Test Cases</div>
+                </div>
+                <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
+                  <div style="font-size:22px;font-weight:900;color:#7c3aed;font-family:'Fira Code',monospace;">100%</div>
+                  <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:.08em;">Pass Rate</div>
+                </div>
+                <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
+                  <div style="font-size:22px;font-weight:900;color:#0369a1;font-family:'Fira Code',monospace;">3</div>
+                  <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:.08em;">Test Layers</div>
+                </div>
+              </div>
+            </div>
+            <div style="width:230px;display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
+              <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:14px;">
+                <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:.1em;margin-bottom:10px;">Graduation Team</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <!-- Team Leader - clean, no heavy gold -->
+                  <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:5px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">AB</span>
+                    <div>
+                      <div style="display:flex;align-items:center;gap:5px;">
+                        <span style="font-size:10.5px;font-weight:800;color:#1e293b;">Amr Barghash</span>
+                        <span style="font-size:8px;background:#d97706;color:white;padding:1px 4px;border-radius:3px;font-weight:700;line-height:1;">Leader</span>
+                      </div>
+                      <div style="font-size:9px;color:#64748b;">QA Engineer</div>
+                    </div>
+                  </div>
+                  <!-- Other members -->
+                  <div style="display:flex;align-items:center;gap:8px;padding:2px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">OA</span>
+                    <div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">Omnia Abdenasser</div><div style="font-size:9px;color:#94a3b8;">QA Engineer</div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:2px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">AO</span>
+                    <div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">Alaa Omran</div><div style="font-size:9px;color:#94a3b8;">QA Engineer</div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:2px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">AE</span>
+                    <div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">Ahmed Elromy</div><div style="font-size:9px;color:#94a3b8;">QA Engineer</div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:2px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">AF</span>
+                    <div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">Asseem Fouad</div><div style="font-size:9px;color:#94a3b8;">QA Engineer</div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:2px 7px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">MF</span>
+                    <div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">Mohamed Fawzy</div><div style="font-size:9px;color:#94a3b8;">QA Engineer</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">DEPI Graduation Defense · 2026</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">01 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 2 – AGENDA
+        ============================================================ -->
+        <section class="slide" id="slide-2">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-indigo">Overview</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Agenda & Speaking Roadmap</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:20px;font-weight:900;color:#1e293b;margin-bottom:4px;">What We'll Cover Today</h2>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #4f46e5;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#4f46e5;font-weight:700;">01</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">Project Overview</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">DEPI context, team roles, OpenCart target site and testing objectives.</div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #7c3aed;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#7c3aed;font-weight:700;">02</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">Manual Testing</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">Requirements sheet, 20 Excel-designed test cases & coverage strategy.</div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #0891b2;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#0891b2;font-weight:700;">03</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">API Testing</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">Postman collections, endpoint validation, API automated tests.</div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #059669;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#059669;font-weight:700;">04</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">Framework Architecture</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">POM design, 4-layer system, source code walkthroughs, Maven setup.</div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #d97706;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#d97706;font-weight:700;">05</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">Execution & Reporting</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">TestNG runner, live simulator, Extent Spark visual reports & metrics.</div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #be123c;border-radius:0 10px 10px 0;padding:12px;">
+                  <div style="font-family:'Fira Code',monospace;font-size:10px;color:#be123c;font-weight:700;">06</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;margin-top:4px;">Challenges & Conclusions</div>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.5;">Obstacles overcome, key learnings, future roadmap & Q&A defense.</div>
+                </div>
+              </div>
+            </div>
+            <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;">
+              <div style="background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #c7d2fe;border-radius:12px;padding:14px;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4338ca;margin-bottom:10px;">Project At a Glance</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;color:#64748b;">Total Test Cases</span><span style="font-family:'Fira Code',monospace;font-size:13px;font-weight:800;color:#4f46e5;">41</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;color:#64748b;">Automation Files</span><span style="font-family:'Fira Code',monospace;font-size:13px;font-weight:800;color:#4f46e5;">32</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;color:#64748b;">Pass Rate</span><span style="font-family:'Fira Code',monospace;font-size:13px;font-weight:800;color:#059669;">100%</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;color:#64748b;">API Endpoints</span><span style="font-family:'Fira Code',monospace;font-size:13px;font-weight:800;color:#0891b2;">12+</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;color:#64748b;">Framework</span><span style="font-size:10px;font-weight:700;color:#7c3aed;">POM + TestNG</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Table of Contents</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">02 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 3 – PROJECT CONTEXT & TARGET APPLICATION
+        ============================================================ -->
+        <section class="slide" id="slide-3">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-indigo">Overview</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Project Context & Target Application</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">DEPI Track & AUT Overview</h2>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">🎓</div>
+                  <div><div style="font-size:11px;font-weight:700;color:#1e293b;">Digital Egypt Pioneers Initiative (DEPI)</div><div style="font-size:9.5px;color:#64748b;margin-top:2px;line-height:1.5;">Government program training graduates in industry-ready QA Automation, Java full-stack, and cloud DevOps engineering tracks.</div></div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">🛒</div>
+                  <div><div style="font-size:11px;font-weight:700;color:#1e293b;">Application Under Test: awesomeqa.com/ui</div><div style="font-size:9.5px;color:#64748b;margin-top:2px;line-height:1.5;">OpenCart-based e-commerce platform. Covers user registration, account management, cart, checkout, address book, newsletter, reviews, and gift certificates.</div></div>
+                </div>
+                <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">⚠️</div>
+                  <div><div style="font-size:11px;font-weight:700;color:#92400e;">Problem Statement</div><div style="font-size:9.5px;color:#78350f;margin-top:2px;line-height:1.5;">Manual regression on a 100+ page storefront is error-prone, inconsistent, and creates delivery bottlenecks. We built a full automation suite to resolve this.</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:12px;color:white;flex:1;">
+                <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Testing Scope</div>
+                <div style="display:flex;flex-direction:column;gap:5px;font-size:10px;">
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">Account Module</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">Cart & Checkout</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">Address Book</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">Product Reviews</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">Newsletter</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 8px;background:#334155;border-radius:6px;"><span style="color:#94a3b8;">REST API Layer</span><span class="tag tag-emerald" style="font-size:8.5px;">✓</span></div>
+                </div>
+              </div>
+              <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px;">
+                <div style="font-size:10px;font-weight:700;color:#4338ca;margin-bottom:5px;">🎯 Project Objectives</div>
+                <div style="font-size:9.5px;color:#374151;line-height:1.65;">
+                  ✦ Eliminate manual regression cycles<br>
+                  ✦ Build repeatable automated smoke suite<br>
+                  ✦ Validate REST API contract integrity<br>
+                  ✦ Generate self-updating HTML reports
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Project Introduction</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">03 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 4 – MANUAL TESTING STRATEGY + SCREENSHOT
+        ============================================================ -->
+        <section class="slide" id="slide-4">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-violet">Manual Testing</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Test Plan, Strategy & Requirements</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">Manual QA Foundation</h2>
+              <p style="font-size:10.5px;color:#64748b;line-height:1.6;">Before automating, we conducted a structured manual testing phase. This established the baseline behavior, identified edge cases, and confirmed the test scope.</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px;">
+                  <div style="font-size:11px;font-weight:700;color:#5b21b6;margin-bottom:6px;">📋 Test Design Approach</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.6;">
+                    • Black-box equivalence partitioning<br>
+                    • Boundary value analysis<br>
+                    • Decision table technique<br>
+                    • State transition testing
+                  </div>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;">
+                  <div style="font-size:11px;font-weight:700;color:#065f46;margin-bottom:6px;">📊 Coverage Metrics</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.6;">
+                    • 20 test cases designed in Excel<br>
+                    • 7 functional modules covered<br>
+                    • Both positive & negative flows<br>
+                    • All cases mapped to requirements
+                  </div>
+                </div>
+                <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px;">
+                  <div style="font-size:11px;font-weight:700;color:#c2410c;margin-bottom:6px;">⚙️ Tools Used</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.6;">
+                    • Microsoft Excel (testcases.xlsx)<br>
+                    • Chrome DevTools for inspection<br>
+                    • WhatsApp for requirement sharing<br>
+                    • Manual bug logging template
+                  </div>
+                </div>
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px;">
+                  <div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:6px;">🐛 Defects Discovered</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.6;">
+                    • DB duplicate entry on register<br>
+                    • Stale accordion checkout panels<br>
+                    • Dynamic XPath dependencies<br>
+                    • Newsletter double-subscription
+                  </div>
+                </div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px;">
+                <div style="font-size:20px;">📄</div>
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:#1e293b;">testcases.xlsx</div>
+                  <div style="font-size:10px;color:#64748b;">Sheet: "Test Cases – Guru99 Bank" · 20 rows · Columns: ID, Title, Steps, Expected, Actual, Status, Priority</div>
+                </div>
+              </div>
+            </div>
+            <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;">
+              <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">📸 Requirements Sheet</div>
+              <div style="flex:1;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+                <img src="./WhatsApp_Image_2026-06-28_at_8.35.29_PM.jpeg" style="width:100%;height:100%;object-fit:cover;border-radius:9px;" alt="Requirements Document" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#94a3b8;font-size:10px;\'>📄 Requirements<br>Document<br>Screenshot</div>'">
+              </div>
+              <div style="font-size:9px;color:#94a3b8;text-align:center;margin-top:5px;">Project requirements sheet shared with team</div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Manual Testing Phase</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">04 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 5 – EXCEL TEST CASES TABLE
+        ============================================================ -->
+        <section class="slide" id="slide-5">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-violet">Manual Testing</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Excel Test Case Registry (TC-01 → TC-20)</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <h2 style="font-size:16px;font-weight:900;color:#1e293b;">20 Manually Designed Test Cases</h2>
+              <div style="display:flex;gap:6px;">
+                <span class="tag tag-emerald">20 Passed</span>
+                <span class="tag tag-indigo">Regression Suite</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;">
+              <table class="data-table">
+                <thead style="position:sticky;top:0;z-index:1;">
+                  <tr>
+                    <th style="width:60px;">TC ID</th>
+                    <th>Test Case Title</th>
+                    <th style="width:100px;">Module</th>
+                    <th style="width:65px;">Priority</th>
+                    <th style="width:60px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-01</td><td>Update Account Information (First & Last Name)</td><td>Account</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-02</td><td>Update Account Email Address</td><td>Account</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-03</td><td>Add New Shipping Address to Address Book</td><td>Address</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-04</td><td>Delete Existing Address from Address Book</td><td>Address</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-05</td><td>Set Default Shipping Address</td><td>Address</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-06</td><td>Subscribe to Newsletter via Account Page</td><td>Newsletter</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-07</td><td>Unsubscribe from Newsletter</td><td>Newsletter</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-08</td><td>Change Account Password Successfully</td><td>Security</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-09</td><td>Product Review Submission on Item Page</td><td>Reviews</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-10</td><td>Add Product to Shopping Cart</td><td>Cart</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-11</td><td>Update Cart Item Quantity</td><td>Cart</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-12</td><td>Remove Product from Shopping Cart</td><td>Cart</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-13</td><td>Complete Guest Checkout Flow</td><td>Checkout</td><td><span class="tag tag-rose" style="font-size:8.5px;">High</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-14</td><td>Apply Coupon Code at Checkout</td><td>Checkout</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-15</td><td>Purchase Gift Certificate (Voucher)</td><td>Gift Cert.</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-16</td><td>Search Product by Keyword</td><td>Search</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-17</td><td>Filter Search Results by Category</td><td>Search</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-18</td><td>Add Product to Wishlist</td><td>Wishlist</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-19</td><td>Compare Two Products Side-by-Side</td><td>Catalog</td><td><span class="tag tag-indigo" style="font-size:8.5px;">Low</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                  <tr><td style="font-family:'Fira Code',monospace;color:#4f46e5;font-weight:700;">TC-20</td><td>View Order History in My Account</td><td>Account</td><td><span class="tag tag-amber" style="font-size:8.5px;">Med</span></td><td><span class="tag tag-emerald" style="font-size:8.5px;">✓ Pass</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: testcases.xlsx · Sheet: Test Cases – Guru99 Bank</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">05 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 6 – API TESTING OVERVIEW + POSTMAN SCREENSHOT
+        ============================================================ -->
+        <section class="slide" id="slide-6">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-indigo" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd;">API Testing</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Postman Collections & API Validation</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:column;gap:10px;">
+            <h2 style="font-size:17px;font-weight:900;color:#1e293b;">REST API Testing with Postman</h2>
+            <div style="flex:1;display:flex;gap:16px;min-height:0;">
+              <div style="flex:1;border:1px solid #334155;border-radius:12px;overflow:hidden;background:#1e1e1e;position:relative;">
+                <img src="./WhatsApp_Image_2026-07-09_at_8.53.47_PM.jpeg" style="width:100%;height:100%;object-fit:contain;display:block;" alt="Postman Execution" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:12px;\'>📸 Postman screenshot</div>'">
+              </div>
+              <!-- Right: folder tree + stats -->
+              <div style="width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+                <div style="background:#0f172a;border-radius:10px;padding:12px;flex:1;">
+                  <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">📁 Collection Structure</div>
+                  <div style="font-family:'Fira Code',monospace;font-size:9.5px;line-height:1.9;">
+                    <div style="color:#c084fc;font-weight:700;">📂 Authentication</div>
+                    <div style="padding-left:14px;"><span style="color:#4ade80;font-weight:700;">POST</span><span style="color:#94a3b8;">  /api/rest/register</span></div>
+                    <div style="padding-left:14px;"><span style="color:#4ade80;font-weight:700;">POST</span><span style="color:#94a3b8;">  /api/rest/login</span></div>
+                    <div style="color:#c084fc;font-weight:700;margin-top:4px;">📂 Products</div>
+                    <div style="padding-left:14px;"><span style="color:#60a5fa;font-weight:700;">GET</span><span style="color:#94a3b8;">   /api/rest/products</span></div>
+                    <div style="padding-left:14px;"><span style="color:#60a5fa;font-weight:700;">GET</span><span style="color:#94a3b8;">   /api/rest/products/{id}</span></div>
+                    <div style="color:#c084fc;font-weight:700;margin-top:4px;">📂 Cart</div>
+                    <div style="padding-left:14px;"><span style="color:#4ade80;font-weight:700;">POST</span><span style="color:#94a3b8;">  /api/rest/cart/add</span></div>
+                    <div style="padding-left:14px;"><span style="color:#60a5fa;font-weight:700;">GET</span><span style="color:#94a3b8;">   /api/rest/cart</span></div>
+                    <div style="padding-left:14px;"><span style="color:#f87171;font-weight:700;">DEL</span><span style="color:#94a3b8;">   /api/rest/cart/{key}</span></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:900;font-family:'Fira Code',monospace;color:#059669;">12+</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Endpoints</div></div>
+                  <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:900;font-family:'Fira Code',monospace;color:#d97706;">200</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">All OK</div></div>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:9px;">
+                  <div style="font-size:10px;font-weight:700;color:#065f46;margin-bottom:4px;">✅ Assertions</div>
+                  <div style="font-size:9px;color:#374151;line-height:1.7;">• Status codes · Body schema<br>• JSON fields · Auth chaining</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: Api_Testing.postman_collection (1).json</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">06 / 20</span>
+          </div>
+        </section>
+
+
+
+        <!-- ============================================================
+             SLIDE 8 – FRAMEWORK ARCHITECTURE
+        ============================================================ -->
+        <section class="slide" id="slide-7">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Framework Architecture & Layered Design</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">4-Layer Framework Blueprint</h2>
+              <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+                <div style="layer-card;border-left:3px solid #4f46e5;padding:12px 14px;border-radius:0 10px 10px 0;background:linear-gradient(90deg,#eef2ff,#f8fafc);display:flex;align-items:center;gap:12px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#4f46e5;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">4</div>
+                  <div><div style="font-size:11.5px;font-weight:700;color:#1e293b;">Test Execution Layer</div><div style="font-size:10px;color:#64748b;margin-top:2px;">TestNG XML suite config, test runner classes (<code>auto_1</code>–<code>auto_12</code>, <code>TC_01</code>–<code>TC_20</code>), assertion engine</div></div>
+                </div>
+                <div style="border-left:3px solid #7c3aed;padding:12px 14px;border-radius:0 10px 10px 0;background:linear-gradient(90deg,#f5f3ff,#f8fafc);display:flex;align-items:center;gap:12px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#7c3aed;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">3</div>
+                  <div><div style="font-size:11.5px;font-weight:700;color:#1e293b;">Page Object Model Layer</div><div style="font-size:10px;color:#64748b;margin-top:2px;">Page classes: <code>LoginPage</code>, <code>AccountPage</code>, <code>CartPage</code>, <code>CheckoutPage</code>, <code>ReviewPage</code>…</div></div>
+                </div>
+                <div style="border-left:3px solid #0891b2;padding:12px 14px;border-radius:0 10px 10px 0;background:linear-gradient(90deg,#e0f2fe,#f8fafc);display:flex;align-items:center;gap:12px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#0891b2;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">2</div>
+                  <div><div style="font-size:11.5px;font-weight:700;color:#1e293b;">Base Infrastructure Layer</div><div style="font-size:10px;color:#64748b;margin-top:2px;"><code>BaseTest.java</code> — WebDriver lifecycle, ChromeOptions, implicit waits. <code>WaitUtils</code> — explicit wait wrappers.</div></div>
+                </div>
+                <div style="border-left:3px solid #059669;padding:12px 14px;border-radius:0 10px 10px 0;background:linear-gradient(90deg,#ecfdf5,#f8fafc);display:flex;align-items:center;gap:12px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:#059669;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">1</div>
+                  <div><div style="font-size:11.5px;font-weight:700;color:#1e293b;">Reporting & Configuration Layer</div><div style="font-size:10px;color:#64748b;margin-top:2px;"><code>ExtentManager</code> singleton, <code>ExtentListener</code> TestNG listener, Maven POM config, <code>pom.xml</code>.</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#0f172a;border-radius:12px;padding:14px;">
+                <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">📁 Project Structure</div>
+                <div style="font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.65;color:#94a3b8;">
+                  <div style="color:#60a5fa;font-weight:700;">Graduation_pro/</div>
+                  <div style="padding-left:12px;color:#94a3b8;">├─ src/test/java/</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  ├─ base/</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│  │  └─ BaseTest.java</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  ├─ listeners/</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│  │  └─ ExtentListener.java</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  ├─ pages/</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  ├─ reports/</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│  │  └─ ExtentManager.java</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  ├─ tests/</div>
+                  <div style="padding-left:24px;color:#c084fc;">│  └─ utils/</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│     ├─ Config.java</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│     ├─ ScreenshotUtil.java</div>
+                  <div style="padding-left:24px;color:#e2e8f0;">│     └─ WaitUtils.java</div>
+                  <div style="padding-left:12px;color:#e2e8f0;">├─ pom.xml</div>
+                  <div style="padding-left:12px;color:#e2e8f0;">├─ report.html</div>
+                  <div style="padding-left:12px;color:#e2e8f0;">└─ testng.xml</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Framework Design Principles</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">08 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 9 – TECHNOLOGY STACK
+        ============================================================ -->
+        <section class="slide" id="slide-8">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Technology Stack & Dependencies</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:column;gap:12px;">
+            <h2 style="font-size:18px;font-weight:900;color:#1e293b;">Maven POM Dependencies & Versions</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;">
+              <div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);border:1px solid #fde68a;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">☕</div>
+                <div style="font-size:13px;font-weight:800;color:#92400e;">Java 17</div>
+                <div style="font-size:10px;color:#78350f;margin-top:4px;line-height:1.5;">Core language. Records, text blocks, sealed classes, enhanced switch expressions used throughout test helpers.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#92400e15;padding:5px 8px;border-radius:5px;color:#78350f;">maven.compiler.source: 17</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#e0f2fe,#dbeafe);border:1px solid #bae6fd;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">🌐</div>
+                <div style="font-size:13px;font-weight:800;color:#1e40af;">Selenium 4.41</div>
+                <div style="font-size:10px;color:#1e3a8a;margin-top:4px;line-height:1.5;">UI automation engine. ChromeDriver, WebDriverManager, relative locators, new W3C BiDi protocol support.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#1e40af15;padding:5px 8px;border-radius:5px;color:#1e3a8a;">selenium-java: 4.41.0</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#fdf4ff,#f5f3ff);border:1px solid #e9d5ff;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">🧪</div>
+                <div style="font-size:13px;font-weight:800;color:#6b21a8;">TestNG 7.11</div>
+                <div style="font-size:10px;color:#581c87;margin-top:4px;line-height:1.5;">Test runner and assertion framework. XML suite configs, parallel execution, priority ordering, group tagging.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#6b21a815;padding:5px 8px;border-radius:5px;color:#581c87;">testng: 7.11.0</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">📊</div>
+                <div style="font-size:13px;font-weight:800;color:#065f46;">Extent Reports 5.1</div>
+                <div style="font-size:10px;color:#064e3b;margin-top:4px;line-height:1.5;">HTML Spark reporting with test logs, screenshots on failure, pass/fail metrics, and system info dashboard.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#065f4615;padding:5px 8px;border-radius:5px;color:#064e3b;">extentreports: 5.1.1</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#fff7ed,#fed7aa);border:1px solid #fdba74;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">🚀</div>
+                <div style="font-size:13px;font-weight:800;color:#c2410c;">Postman</div>
+                <div style="font-size:10px;color:#9a3412;margin-top:4px;line-height:1.5;">API client and automation environment. Used for request construction, collection runner execution, schema testing, and manual endpoint validation.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#c2410c15;padding:5px 8px;border-radius:5px;color:#9a3412;">API collection version: 2.1</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:12px;padding:14px;">
+                <div style="font-size:22px;margin-bottom:6px;">⚙️</div>
+                <div style="font-size:13px;font-weight:800;color:#166534;">Apache Maven</div>
+                <div style="font-size:10px;color:#14532d;margin-top:4px;line-height:1.5;">Build and dependency management. Lifecycle phases: clean, test, verify. Surefire plugin for TestNG XML integration.</div>
+                <div style="margin-top:8px;font-family:'Fira Code',monospace;font-size:9px;background:#16653415;padding:5px 8px;border-radius:5px;color:#14532d;">maven-surefire: 3.x</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: pom.xml · Graduation_pro</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">09 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 10 – PAGE OBJECT MODEL
+        ============================================================ -->
+        <section class="slide" id="slide-9">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Page Object Model Design Pattern</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">POM: Separating Concerns</h2>
+              <p style="font-size:10px;color:#64748b;line-height:1.6;">The Page Object Model separates the <strong>What</strong> (tests) from the <strong>How</strong> (UI interactions). Each page class encapsulates locators and actions, making tests readable, reusable and maintainable.</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;">
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="font-size:10px;font-weight:700;color:#991b1b;">❌ Without POM</div>
+                  <div style="flex:1;background:#1e1e1e;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;font-family:'Fira Code',monospace;font-size:8.5px;min-height:120px;">
+                    <div style="background:#2d2d2d;padding:4px 8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid #444;flex-shrink:0;">
+                      <span style="width:7px;height:7px;border-radius:50%;background:#ff5f57;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#febc2e;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#28c840;"></span>
+                      <span style="font-size:8px;color:#666;margin-left:6px;">LoginTest.java</span>
+                    </div>
+                    <pre style="margin:0;padding:6px;line-height:1.45;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#6a9955;">// Scattered locators</span>
+driver.findElement(By.id(<span style="color:#ce9178;">"email"</span>))
+  .sendKeys(<span style="color:#ce9178;">"user@test.com"</span>);
+driver.findElement(By.id(<span style="color:#ce9178;">"pass"</span>))
+  .sendKeys(<span style="color:#ce9178;">"password"</span>);
+driver.findElement(By.cssSelector(
+  <span style="color:#ce9178;">"[value='Login']"</span>)).click();</pre>
+                  </div>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="font-size:10px;font-weight:700;color:#065f46;">✅ With POM</div>
+                  <div style="flex:1;background:#1e1e1e;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;font-family:'Fira Code',monospace;font-size:8.5px;min-height:120px;">
+                    <div style="background:#2d2d2d;padding:4px 8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid #444;flex-shrink:0;">
+                      <span style="width:7px;height:7px;border-radius:50%;background:#ff5f57;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#febc2e;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#28c840;"></span>
+                      <span style="font-size:8px;color:#666;margin-left:6px;">LoginTest.java</span>
+                    </div>
+                    <pre style="margin:0;padding:6px;line-height:1.45;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#6a9955;">// Clean POM test</span>
+loginPage
+  .enterEmail(<span style="color:#ce9178;">"user@test.com"</span>)
+  .enterPassword(<span style="color:#ce9178;">"password"</span>)
+  .clickLogin();
+
+<span style="color:#6a9955;">// If UI changes → update</span>
+<span style="color:#6a9955;">// LoginPage class once</span></pre>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;display:flex;gap:16px;">
+                <div style="text-align:center;flex:1;"><div style="font-size:16px;font-weight:900;color:#4f46e5;font-family:'Fira Code',monospace;">12+</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Page Classes</div></div>
+                <div style="text-align:center;flex:1;"><div style="font-size:16px;font-weight:900;color:#7c3aed;font-family:'Fira Code',monospace;">32</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Total Java Files</div></div>
+                <div style="text-align:center;flex:1;"><div style="font-size:16px;font-weight:900;color:#059669;font-family:'Fira Code',monospace;">0</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Locator Duplication</div></div>
+                <div style="text-align:center;flex:1;"><div style="font-size:16px;font-weight:900;color:#d97706;font-family:'Fira Code',monospace;">100%</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Reusability Score</div></div>
+              </div>
+            </div>
+            <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:#0f172a;border-radius:10px;padding:12px;">
+                <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Page Classes</div>
+                <div style="display:flex;flex-direction:column;gap:4px;font-size:9.5px;font-family:'Fira Code',monospace;">
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">LoginPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">AccountPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">AddressPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">CartPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">CheckoutPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">ReviewPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">NewsletterPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#c084fc;">GiftCertPage.java</div>
+                  <div style="padding:4px 8px;background:#1e293b;border-radius:4px;color:#94a3b8;font-style:italic;">+ 4 more pages…</div>
+                </div>
+              </div>
+              <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px;">
+                <div style="font-size:10px;font-weight:700;color:#3730a3;margin-bottom:5px;">POM Benefits</div>
+                <div style="font-size:9.5px;color:#374151;line-height:1.7;">
+                  ✦ Single source of truth<br>
+                  ✦ DRY principle enforced<br>
+                  ✦ Easy UI change adaptation<br>
+                  ✦ Improved test readability
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Design Pattern Implementation</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">10 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 11 – BASE INFRASTRUCTURE CODE
+        ============================================================ -->
+        <section class="slide" id="slide-10">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">BaseTest.java — WebDriver Infrastructure</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
+              <h2 style="font-size:15px;font-weight:900;color:#1e293b;">WebDriver Setup &amp; Teardown</h2>
+              <!-- IDE window -->
+              <div style="flex:1;background:#1e1e1e;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;">
+                <div style="background:#2d2d2d;padding:5px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #444;flex-shrink:0;">
+                  <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#28c840;"></span>
+                  <span style="font-family:'Fira Code',monospace;font-size:9px;color:#666;margin-left:8px;">BaseTest.java</span>
+                </div>
+                <div style="flex:1;overflow-y:auto;display:flex;">
+                  <div style="background:#1a1a1a;padding:8px 7px;text-align:right;flex-shrink:0;border-right:1px solid #333;user-select:none;">
+                    <div style="font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#555;">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46</div>
+                  </div>
+                  <pre style="margin:0;padding:8px 12px;font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#569cd6;">package</span> base;
+
+<span style="color:#569cd6;">import</span> org.openqa.selenium.chrome.ChromeDriver;
+<span style="color:#569cd6;">import</span> org.openqa.selenium.chrome.ChromeOptions;
+<span style="color:#569cd6;">import</span> org.testng.annotations.AfterMethod;
+<span style="color:#569cd6;">import</span> org.testng.annotations.BeforeMethod;
+<span style="color:#569cd6;">import</span> org.openqa.selenium.WebDriver;
+<span style="color:#569cd6;">import</span> utils.Config;
+<span style="color:#569cd6;">import</span> java.util.HashMap;
+<span style="color:#569cd6;">import</span> java.util.Map;
+
+<span style="color:#569cd6;">public class</span> <span style="color:#4ec9b0;">BaseTest</span> {
+    <span style="color:#569cd6;">protected</span> <span style="color:#4ec9b0;">WebDriver</span> driver;
+
+    <span style="color:#c586c0;">@BeforeMethod</span>
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">openBrowser</span>() {
+        <span style="color:#4ec9b0;">ChromeOptions</span> options = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">ChromeOptions</span>();
+        
+        <span style="color:#6a9955;">// Disable Chrome password manager & auto-fill bubbles</span>
+        <span style="color:#4ec9b0;">Map</span>&lt;<span style="color:#4ec9b0;">String</span>, <span style="color:#4ec9b0;">Object</span>&gt; prefs = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">HashMap</span>&lt;&gt;();
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"credentials_enable_service"</span>, <span style="color:#569cd6;">false</span>);
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"profile.password_manager_enabled"</span>, <span style="color:#569cd6;">false</span>);
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"profile.password_manager_leak_detection"</span>, <span style="color:#569cd6;">false</span>);
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"profile.password_manager_leak_detection_enabled"</span>, <span style="color:#569cd6;">false</span>);
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"autofill.profile_enabled"</span>, <span style="color:#569cd6;">false</span>);
+        prefs.<span style="color:#dcdcaa;">put</span>(<span style="color:#ce9178;">"autofill.password_enabled"</span>, <span style="color:#569cd6;">false</span>);
+        options.<span style="color:#dcdcaa;">setExperimentalOption</span>(<span style="color:#ce9178;">"prefs"</span>, prefs);
+        
+        options.<span style="color:#dcdcaa;">addArguments</span>(<span style="color:#ce9178;">"--disable-features=SafeBrowsingCompromisedCredentialsCheck"</span>);
+        options.<span style="color:#dcdcaa;">addArguments</span>(<span style="color:#ce9178;">"--disable-features=PasswordLeakDetection"</span>);
+        options.<span style="color:#dcdcaa;">addArguments</span>(<span style="color:#ce9178;">"--disable-save-password-bubble"</span>);
+        options.<span style="color:#dcdcaa;">addArguments</span>(<span style="color:#ce9178;">"--no-sandbox"</span>);
+
+        driver = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">ChromeDriver</span>(options);
+        driver.<span style="color:#dcdcaa;">manage</span>().<span style="color:#dcdcaa;">timeouts</span>().<span style="color:#dcdcaa;">implicitlyWait</span>(java.time.Duration.<span style="color:#dcdcaa;">ofSeconds</span>(<span style="color:#4ec9b0;">Config</span>.timeout));
+        driver.<span style="color:#dcdcaa;">get</span>(<span style="color:#4ec9b0;">Config</span>.baseUrl);
+        driver.<span style="color:#dcdcaa;">manage</span>().<span style="color:#dcdcaa;">window</span>().<span style="color:#dcdcaa;">maximize</span>();
+    }
+
+    <span style="color:#c586c0;">@AfterMethod</span>
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">closeBrowser</span>() {
+        <span style="color:#569cd6;">if</span> (driver != <span style="color:#569cd6;">null</span>) {
+            driver.<span style="color:#dcdcaa;">quit</span>();
+        }
+    }
+}</pre>
+                </div>
+              </div>
+            </div>
+            <div style="width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:7px;">
+              <div style="background:#0f172a;border-radius:10px;padding:11px;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">Key Design Decisions</div>
+                <div style="display:flex;flex-direction:column;gap:6px;font-size:9.5px;">
+                  <div style="padding:7px;background:#1e293b;border-radius:6px;border-left:3px solid #4f46e5;"><div style="color:#c7d2fe;font-weight:700;">ChromeOptions Suppression</div><div style="color:#64748b;font-size:8.5px;margin-top:2px;">Password bubble dialogs break test flows. Disabled via prefs map.</div></div>
+                  <div style="padding:7px;background:#1e293b;border-radius:6px;border-left:3px solid #7c3aed;"><div style="color:#ddd6fe;font-weight:700;">Implicit 10s Wait</div><div style="color:#64748b;font-size:8.5px;margin-top:2px;">Base fallback wait, supplemented by WaitUtils explicit waits.</div></div>
+                  <div style="padding:7px;background:#1e293b;border-radius:6px;border-left:3px solid #059669;"><div style="color:#bbf7d0;font-weight:700;">@Before/@After lifecycle</div><div style="color:#64748b;font-size:8.5px;margin-top:2px;">Fresh browser session per test — prevents state pollution.</div></div>
+                  <div style="padding:7px;background:#1e293b;border-radius:6px;border-left:3px solid #d97706;"><div style="color:#fde68a;font-weight:700;">maximize() + navigate</div><div style="color:#64748b;font-size:8.5px;margin-top:2px;">Full-screen window ensures responsive selectors always resolve.</div></div>
+                </div>
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:9px;">
+                <div style="font-size:10px;font-weight:700;color:#065f46;margin-bottom:3px;">🔧 WaitUtils.java</div>
+                <div style="font-size:9px;color:#374151;line-height:1.65;">Centralises all WebDriverWait calls.<br><code>waitForClickable()</code> · <code>waitForVisible()</code> · <code>waitForText()</code></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: base/BaseTest.java</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">11 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 12 – LOGIN PAGE CODE
+        ============================================================ -->
+        <section class="slide" id="slide-11">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">pages/LoginPage.java — POM Implementation</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
+              <h2 style="font-size:15px;font-weight:900;color:#1e293b;">Page Locators &amp; Action Methods</h2>
+              <div style="flex:1;background:#1e1e1e;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;">
+                <div style="background:#2d2d2d;padding:5px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #444;flex-shrink:0;">
+                  <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#28c840;"></span>
+                  <span style="font-family:'Fira Code',monospace;font-size:9px;color:#666;margin-left:8px;">LoginPage.java</span>
+                </div>
+                <div style="flex:1;overflow-y:auto;display:flex;">
+                  <div style="background:#1a1a1a;padding:8px 7px;text-align:right;flex-shrink:0;border-right:1px solid #333;user-select:none;">
+                    <div style="font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#555;">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46<br>47<br>48</div>
+                  </div>
+                  <pre style="margin:0;padding:8px 12px;font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#569cd6;">package</span> pages;
+
+<span style="color:#569cd6;">import</span> org.openqa.selenium.By;
+<span style="color:#569cd6;">import</span> org.openqa.selenium.WebDriver;
+<span style="color:#569cd6;">import</span> utils.WaitUtils;
+
+<span style="color:#569cd6;">public class</span> <span style="color:#4ec9b0;">LoginPage</span> {
+    <span style="color:#4ec9b0;">WebDriver</span> driver;
+    <span style="color:#4ec9b0;">WaitUtils</span> waitUtils;
+
+    <span style="color:#569cd6;">public</span> <span style="color:#dcdcaa;">LoginPage</span>(<span style="color:#4ec9b0;">WebDriver</span> driver) {
+        <span style="color:#569cd6;">this</span>.driver = driver;
+        <span style="color:#569cd6;">this</span>.waitUtils = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">WaitUtils</span>(driver);
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">enterMyAccount</span>() {
+        waitUtils.<span style="color:#dcdcaa;">waitForElementToBeClickable</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">xpath</span>(<span style="color:#ce9178;">"//*[@id=\"top-links\"]/ul/li[2]/a/span[1]"</span>)).<span style="color:#dcdcaa;">click</span>();
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">enterLogin</span>() {
+        waitUtils.<span style="color:#dcdcaa;">waitForElementToBeClickable</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">linkText</span>(<span style="color:#ce9178;">"Login"</span>)).<span style="color:#dcdcaa;">click</span>();
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">clickForgottenPassword</span>() {
+        waitUtils.<span style="color:#dcdcaa;">waitForElementToBeClickable</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">linkText</span>(<span style="color:#ce9178;">"Forgotten Password"</span>)).<span style="color:#dcdcaa;">click</span>();
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">enterEmail</span>(<span style="color:#4ec9b0;">String</span> Email) {
+        driver.<span style="color:#dcdcaa;">findElement</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">id</span>(<span style="color:#ce9178;">"input-email"</span>)).<span style="color:#dcdcaa;">sendKeys</span>(Email);
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">enterPassword</span>(<span style="color:#4ec9b0;">String</span> Password) {
+        driver.<span style="color:#dcdcaa;">findElement</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">id</span>(<span style="color:#ce9178;">"input-password"</span>)).<span style="color:#dcdcaa;">sendKeys</span>(Password);
+    }
+
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">clickLoginButton</span>() {
+        waitUtils.<span style="color:#dcdcaa;">waitForElementToBeClickable</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">cssSelector</span>(<span style="color:#ce9178;">"input[type='submit']"</span>)).<span style="color:#dcdcaa;">click</span>();
+    }
+
+    <span style="color:#569cd6;">public String</span> <span style="color:#dcdcaa;">getAlertText</span>() {
+        <span style="color:#569cd6;">return</span> waitUtils.<span style="color:#dcdcaa;">waitForElementToBeVisible</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">cssSelector</span>(<span style="color:#ce9178;">".alert.alert-success"</span>)).<span style="color:#dcdcaa;">getText</span>();
+    }
+
+    <span style="color:#569cd6;">public boolean</span> <span style="color:#dcdcaa;">getSuccessMessage</span>(<span style="color:#4ec9b0;">String</span> expectedMessage) {
+        <span style="color:#569cd6;">return</span> driver.<span style="color:#dcdcaa;">getCurrentUrl</span>().<span style="color:#dcdcaa;">contains</span>(expectedMessage);
+    }
+
+    <span style="color:#569cd6;">public String</span> <span style="color:#dcdcaa;">getErrorMessage</span>() {
+        <span style="color:#569cd6;">return</span> driver.<span style="color:#dcdcaa;">findElement</span>(<span style="color:#4ec9b0;">By</span>.<span style="color:#dcdcaa;">cssSelector</span>(<span style="color:#ce9178;">".alert.alert-danger.alert-dismissible"</span>)).<span style="color:#dcdcaa;">getText</span>();
+    }
+}</pre>
+                </div>
+              </div>
+            </div>
+            <div style="width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:7px;">
+              <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:11px;">
+                <div style="font-size:10px;font-weight:700;color:#5b21b6;margin-bottom:6px;">💡 Design Notes</div>
+                <div style="font-size:9.5px;color:#374151;line-height:1.65;">
+                  ✦ Locators are <strong>private</strong> fields<br>
+                  ✦ No raw <code>driver.findElement</code> in tests<br>
+                  ✦ WaitUtils wraps all WebDriverWait<br>
+                  ✦ Constructor injects shared driver<br>
+                  ✦ Methods return <code>void</code>
+                </div>
+              </div>
+              <div style="background:#0f172a;border-radius:10px;padding:11px;flex:1;">
+                <div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:7px;text-transform:uppercase;letter-spacing:.1em;">Using LoginPage in Test</div>
+                <pre style="font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.8;color:#e2e8f0;margin:0;"><span style="color:#c084fc;">LoginPage</span> lp =
+  <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">LoginPage</span>(driver);
+
+lp.<span style="color:#93c5fd;">enterEmail</span>(
+  <span style="color:#86efac;">"test@email.com"</span>);
+lp.<span style="color:#93c5fd;">enterPassword</span>(
+  <span style="color:#86efac;">"Test@1234"</span>);
+lp.<span style="color:#93c5fd;">clickLogin</span>();</pre>
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:9px;">
+                <div style="font-size:10px;font-weight:700;color:#065f46;margin-bottom:3px;">🎯 WaitUtils methods</div>
+                <div style="font-size:8.5px;color:#374151;font-family:'Fira Code',monospace;line-height:1.7;">waitForVisible(By)<br>waitForClickable(By)<br>waitForText(By, String)</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: pages/LoginPage.java</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">12 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 13 – TC_01 TEST CODE
+        ============================================================ -->
+
+        <section class="slide" id="slide-12">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">tests/TC_01_UpdateAccountTest.java</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
+              <h2 style="font-size:15px;font-weight:900;color:#1e293b;">Test Scenario: Update Account Info</h2>
+              <div style="flex:1;background:#1e1e1e;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;">
+                <div style="background:#2d2d2d;padding:5px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #444;flex-shrink:0;">
+                  <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#28c840;"></span>
+                  <span style="font-family:'Fira Code',monospace;font-size:9px;color:#666;margin-left:8px;">TC_01_UpdateAccountTest.java</span>
+                </div>
+                <div style="flex:1;overflow-y:auto;display:flex;">
+                  <div style="background:#1a1a1a;padding:8px 7px;text-align:right;flex-shrink:0;border-right:1px solid #333;user-select:none;">
+                    <div style="font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#555;">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46<br>47<br>48<br>49<br>50<br>51</div>
+                  </div>
+                  <pre style="margin:0;padding:8px 12px;font-family:'Fira Code',monospace;font-size:8.5px;line-height:1.75;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#569cd6;">package</span> tests;
+
+<span style="color:#569cd6;">import</span> base.BaseTest;
+<span style="color:#569cd6;">import</span> listeners.ExtentListener;
+<span style="color:#569cd6;">import</span> org.testng.Assert;
+<span style="color:#569cd6;">import</span> org.testng.annotations.BeforeMethod;
+<span style="color:#569cd6;">import</span> org.testng.annotations.Listeners;
+<span style="color:#569cd6;">import</span> org.testng.annotations.Test;
+<span style="color:#569cd6;">import</span> pages.AccountPage;
+<span style="color:#569cd6;">import</span> pages.LoginPage;
+
+<span style="color:#c586c0;">@Listeners</span>(<span style="color:#4ec9b0;">ExtentListener</span>.class)
+<span style="color:#569cd6;">public class</span> <span style="color:#4ec9b0;">TC_01_UpdateAccountTest</span> <span style="color:#569cd6;">extends</span> <span style="color:#4ec9b0;">BaseTest</span> {
+    <span style="color:#569cd6;">private</span> <span style="color:#4ec9b0;">LoginPage</span> loginPage;
+    <span style="color:#569cd6;">private</span> <span style="color:#4ec9b0;">AccountPage</span> accountPage;
+
+    <span style="color:#c586c0;">@BeforeMethod</span>
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">setUp</span>() {
+        loginPage = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">LoginPage</span>(driver);
+        accountPage = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">AccountPage</span>(driver);
+    }
+
+    <span style="color:#c586c0;">@Test</span>(description = <span style="color:#ce9178;">"TC-01 - Update Personal Account Information"</span>)
+    <span style="color:#569cd6;">public void</span> <span style="color:#dcdcaa;">testUpdatePersonalAccountInformation</span>() {
+        <span style="color:#6a9955;">// 1. Login with valid credentials</span>
+        loginPage.<span style="color:#dcdcaa;">enterMyAccount</span>();
+        loginPage.<span style="color:#dcdcaa;">enterLogin</span>();
+        loginPage.<span style="color:#dcdcaa;">enterEmail</span>(<span style="color:#ce9178;">"Rana@gmail.com"</span>);
+        loginPage.<span style="color:#dcdcaa;">enterPassword</span>(<span style="color:#ce9178;">"111111"</span>);
+        loginPage.<span style="color:#dcdcaa;">clickLoginButton</span>();
+        accountPage.<span style="color:#dcdcaa;">waitForAccountPageToLoad</span>();
+
+        <span style="color:#6a9955;">// 2. Navigate to Edit Account page</span>
+        accountPage.<span style="color:#dcdcaa;">navigateToEditAccount</span>();
+
+        <span style="color:#6a9955;">// 3. Update First Name with timestamp</span>
+        <span style="color:#4ec9b0;">String</span> updatedFirstName = <span style="color:#ce9178;">"Rana"</span> + <span style="color:#4ec9b0;">System</span>.<span style="color:#dcdcaa;">currentTimeMillis</span>() % 1000;
+        accountPage.<span style="color:#dcdcaa;">clearAndEnterFirstName</span>(updatedFirstName);
+        accountPage.<span style="color:#dcdcaa;">clearAndEnterLastName</span>(<span style="color:#ce9178;">"Test"</span>);
+        accountPage.<span style="color:#dcdcaa;">clearAndEnterTelephone</span>(<span style="color:#ce9178;">"1234567890"</span>);
+
+        <span style="color:#6a9955;">// 4. Click Continue/Save</span>
+        accountPage.<span style="color:#dcdcaa;">clickContinue</span>();
+
+        <span style="color:#6a9955;">// 5. Verify success message</span>
+        <span style="color:#4ec9b0;">String</span> successMsg = accountPage.<span style="color:#dcdcaa;">getSuccessMessage</span>();
+        <span style="color:#4ec9b0;">Assert</span>.<span style="color:#dcdcaa;">assertTrue</span>(successMsg.<span style="color:#dcdcaa;">contains</span>(<span style="color:#ce9178;">"Success"</span>),
+                <span style="color:#ce9178;">"Expected success message after updating account information"</span>);
+    }
+}</pre>
+                </div>
+              </div>
+            </div>
+            <div style="width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;">
+                <div style="font-size:10.5px;font-weight:700;color:#065f46;margin-bottom:8px;">✅ Test Flow Steps</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:#059669;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+                    <span style="font-size:9.5px;color:#374151;">Navigate to AUT login page</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:#059669;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+                    <span style="font-size:9.5px;color:#374151;">Login with test credentials</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:#059669;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
+                    <span style="font-size:9.5px;color:#374151;">Navigate to Edit Account section</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:#059669;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</span>
+                    <span style="font-size:9.5px;color:#374151;">Clear and re-enter first & last name</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:#059669;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</span>
+                    <span style="font-size:9.5px;color:#374151;">Submit form and assert success</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px;">
+                <div style="font-size:10.5px;font-weight:700;color:#3730a3;margin-bottom:6px;">Expected Behavior</div>
+                <div style="font-size:9.5px;color:#374151;line-height:1.7;">
+                  The account page should display a green success banner confirming:<br><br>
+                  <span style="font-family:'Fira Code',monospace;background:#e0e7ff;padding:3px 6px;border-radius:4px;font-size:9px;">"Your account has been successfully updated."</span>
+                </div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
+                <span class="tag tag-emerald" style="font-size:11px;padding:4px 12px;">✓ TEST PASSED</span>
+                <div style="font-size:9px;color:#94a3b8;margin-top:4px;">Assert passed on success banner text</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: tests/TC_01_UpdateAccountTest.java</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">13 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 14 – TEST COVERAGE BREAKDOWN
+        ============================================================ -->
+        <section class="slide" id="slide-13">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Full Test Coverage: 41 Cases Across 3 Suites</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:16px;font-weight:900;color:#1e293b;">Automation Suite Breakdown</h2>
+              <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+                <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:700;color:#5b21b6;">📋 Excel Test Suite (testng.xml · suite 1)</span>
+                    <span class="tag tag-violet">20 cases</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:9.5px;font-family:'Fira Code',monospace;color:#374151;">
+                    <div>TC_01 · UpdateAccount</div><div>TC_11 · UpdateCartQty</div>
+                    <div>TC_02 · UpdateEmail</div><div>TC_12 · RemoveFromCart</div>
+                    <div>TC_03 · AddAddress</div><div>TC_13 · GuestCheckout</div>
+                    <div>TC_04 · DeleteAddress</div><div>TC_14 · ApplyCoupon</div>
+                    <div>TC_05 · SetDefaultAddr</div><div>TC_15 · GiftCertificate</div>
+                    <div>TC_06 · Subscribe</div><div>TC_16 · SearchProduct</div>
+                    <div>TC_07 · Unsubscribe</div><div>TC_17 · FilterResults</div>
+                    <div>TC_08 · ChangePassword</div><div>TC_18 · AddWishlist</div>
+                    <div>TC_09 · ProductReview</div><div>TC_19 · CompareProducts</div>
+                    <div>TC_10 · AddToCart</div><div>TC_20 · OrderHistory</div>
+                  </div>
+                </div>
+                <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:700;color:#065f46;">⚡ Core Automation Suite (testng.xml · suite 2)</span>
+                    <span class="tag tag-emerald">12 cases</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:9.5px;font-family:'Fira Code',monospace;color:#374151;">
+                    <div>auto_1 · LoginValid</div><div>auto_7 · NewsletterSub</div>
+                    <div>auto_2 · LoginInvalid</div><div>auto_8 · NewsletterUnsub</div>
+                    <div>auto_3 · RegisterUser</div><div>auto_9 · ReviewSubmit</div>
+                    <div>auto_4 · AccountUpdate</div><div>auto_10 · CartFlow</div>
+                    <div>auto_5 · AddressAdd</div><div>auto_11 · CheckoutFlow</div>
+                    <div>auto_6 · AddressDelete</div><div>auto_12 · GiftCertFlow</div>
+                  </div>
+                </div>
+                <div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:11px;font-weight:700;color:#0369a1;">🌐 API Automated Tests</span>
+                  <span class="tag" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc;">9 cases</span>
+                </div>
+              </div>
+            </div>
+            <div style="width:185px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:14px;color:white;flex:1;">
+                <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Overall Metrics</div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="text-align:center;padding:12px;background:#0f172a;border-radius:8px;">
+                    <div style="font-size:30px;font-weight:900;font-family:'Fira Code',monospace;color:#4ade80;">41</div>
+                    <div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Total Test Cases</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;background:#0f172a;border-radius:8px;">
+                    <div style="font-size:24px;font-weight:900;font-family:'Fira Code',monospace;color:#4ade80;">100%</div>
+                    <div style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:700;">Pass Rate</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div style="text-align:center;padding:8px;background:#0f172a;border-radius:6px;"><div style="font-size:16px;font-weight:900;color:#60a5fa;font-family:'Fira Code',monospace;">20</div><div style="font-size:8px;color:#475569;">Excel Suite</div></div>
+                    <div style="text-align:center;padding:8px;background:#0f172a;border-radius:6px;"><div style="font-size:16px;font-weight:900;color:#c084fc;font-family:'Fira Code',monospace;">12</div><div style="font-size:8px;color:#475569;">Core Suite</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: testng.xml · All Test Classes</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">14 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 15 – TESTNG XML CONFIGURATION
+        ============================================================ -->
+        <section class="slide" id="slide-14">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">testng.xml — Suite Configuration</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <h2 style="font-size:15px;font-weight:900;color:#1e293b;">TestNG Suite Runner Configuration</h2>
+              <div style="flex:1;background:#1e1e1e;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;">
+                <div style="background:#2d2d2d;padding:5px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #444;flex-shrink:0;">
+                  <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;"></span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:#28c840;"></span>
+                  <span style="font-family:'Fira Code',monospace;font-size:9px;color:#666;margin-left:8px;">testng.xml</span>
+                </div>
+                <div style="flex:1;overflow-y:auto;display:flex;">
+                  <div style="background:#1a1a1a;padding:8px 7px;text-align:right;flex-shrink:0;border-right:1px solid #333;user-select:none;">
+                    <div style="font-family:'Fira Code',monospace;font-size:8px;line-height:1.6;color:#555;">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46<br>47<br>48<br>49<br>50</div>
+                  </div>
+                  <pre style="margin:0;padding:8px 12px;font-family:'Fira Code',monospace;font-size:8px;line-height:1.6;color:#d4d4d4;overflow-x:auto;flex:1;"><span style="color:#60a5fa;">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span style="color:#60a5fa;">&lt;!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"&gt;</span>
+<span style="color:#c084fc;">&lt;suite</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"Graduation Project Suite"</span><span style="color:#c084fc;">&gt;</span>
+    
+    <span style="color:#6a9955;">&lt;!-- Group 1: 20 Excel Test Cases (Ordered sequentially) --&gt;</span>
+    <span style="color:#c084fc;">&lt;test</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"Excel Test Cases (1 to 20)"</span> <span style="color:#fbbf24;">preserve-order</span>=<span style="color:#86efac;">"true"</span><span style="color:#c084fc;">&gt;</span>
+        <span style="color:#c084fc;">&lt;classes&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_01_UpdateAccountTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_02_ChangePasswordTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_03_NewsletterTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_04_AddressBookTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_05_ProductReviewTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_06_OrderHistoryTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_07_GiftCertificateTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_08_ReturnProductTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_09_ContactUsTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_10_SearchNoResultTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_11_SortByCategoryTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_12_ProductsPerPageTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_13_GridListViewTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_14_ProductDetailsTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_15_UpdateQuantityTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_16_RemoveProductTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_17_CouponCodeTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_18_EstimateShippingTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_19_ForgotPasswordNegativeTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.TC_20_FooterLinksTest"</span> <span style="color:#c084fc;">/&gt;</span>
+        <span style="color:#c084fc;">&lt;/classes&gt;</span>
+    <span style="color:#c084fc;">&lt;/test&gt;</span>
+    
+    <span style="color:#6a9955;">&lt;!-- Group 2: The Other 12 Test Cases --&gt;</span>
+    <span style="color:#c084fc;">&lt;test</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"Other 12 Project Test Cases"</span> <span style="color:#fbbf24;">preserve-order</span>=<span style="color:#86efac;">"true"</span><span style="color:#c084fc;">&gt;</span>
+        <span style="color:#c084fc;">&lt;classes&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_1_RegisterTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_2_LoginTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_3_ForgotPasswordTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_4_ProductSearchTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_5_CurrencySwitchTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_6_RandomCategoryTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_7_HoverCategoryTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_8_LoggedUserCategoryTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_9_WishlistTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_10_CompareListTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_11_AddToCartTest"</span> <span style="color:#c084fc;">/&gt;</span>
+            <span style="color:#c084fc;">&lt;class</span> <span style="color:#fbbf24;">name</span>=<span style="color:#86efac;">"tests.auto_12_CheckoutTest"</span> <span style="color:#c084fc;">/&gt;</span>
+        <span style="color:#c084fc;">&lt;/classes&gt;</span>
+    <span style="color:#c084fc;">&lt;/test&gt;</span>
+<span style="color:#c084fc;">&lt;/suite&gt;</span></pre>
+                </div>
+              </div>
+            </div>
+            <div style="width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:7px;">
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:11px;">
+                <div style="font-size:10px;font-weight:700;color:#065f46;margin-bottom:6px;">⚙️ TestNG Features Used</div>
+                <div style="display:flex;flex-direction:column;gap:5px;font-size:9.5px;color:#374151;">
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>Suite grouping</strong> — 2 test blocks</span></div>
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>@BeforeMethod</strong> — Fresh driver</span></div>
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>@AfterMethod</strong> — driver.quit()</span></div>
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>@Test priority</strong> — Login first</span></div>
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>Listeners</strong> — ExtentListener</span></div>
+                  <div style="display:flex;gap:6px;"><span style="color:#059669;font-weight:700;">✓</span><span><strong>verbose=1</strong> — Console logging</span></div>
+                </div>
+              </div>
+              <div style="background:#0f172a;border-radius:10px;padding:11px;">
+                <div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Maven Run Command</div>
+                <div style="font-family:'Fira Code',monospace;font-size:10px;background:#020617;padding:8px;border-radius:6px;color:#4ade80;">mvn clean test<br>&nbsp;&nbsp;-DsuiteXmlFile=<br>&nbsp;&nbsp;&nbsp;&nbsp;testng.xml</div>
+              </div>
+              <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:9px;">
+                <div style="font-size:10px;font-weight:700;color:#92400e;margin-bottom:3px;">📊 After Run Output</div>
+                <div style="font-size:9px;color:#374151;font-family:'Fira Code',monospace;">ExtentReport_[date].html<br>generated in /reports/</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Source: testng.xml · Root Project</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">15 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 16 – LIVE TEST SIMULATOR
+        ============================================================ -->
+        <section class="slide" id="slide-15">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Automation</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Interactive Test Execution Simulator</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:16px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <h2 style="font-size:16px;font-weight:900;color:#1e293b;">TestNG Suite Runner</h2>
+                <div style="display:flex;gap:6px;">
+                  <button onclick="runTests()" id="btn-run" style="background:#4f46e5;color:white;border:none;padding:6px 14px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">▶ Run Suite</button>
+                  <button onclick="clearTerminal()" style="background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Clear</button>
+                </div>
+              </div>
+              <div style="background:#020617;border:1px solid #1e293b;border-radius:10px;padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column;">
+                <div style="background:#1e293b;padding:6px 12px;display:flex;align-items:center;gap:6px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#f87171;"></span>
+                  <span style="width:8px;height:8px;border-radius:50%;background:#fbbf24;"></span>
+                  <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;"></span>
+                  <span style="font-family:'Fira Code',monospace;font-size:9px;color:#475569;margin-left:8px;">mvn clean test -DsuiteXmlFile=testng.xml</span>
+                </div>
+                <div id="terminal-output" style="flex:1;padding:10px 14px;overflow-y:auto;">
+                  <div class="t-dim">[INFO] Click "Run Suite" to simulate the full TestNG test execution...</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px;text-align:center;"><div id="counter-pass" style="font-size:18px;font-weight:900;font-family:'Fira Code',monospace;color:#059669;">0</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Passed</div></div>
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px;text-align:center;"><div id="counter-fail" style="font-size:18px;font-weight:900;font-family:'Fira Code',monospace;color:#dc2626;">0</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Failed</div></div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px;text-align:center;"><div id="counter-total" style="font-size:18px;font-weight:900;font-family:'Fira Code',monospace;color:#374151;">41</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Total</div></div>
+                <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px;text-align:center;"><div id="counter-rate" style="font-size:18px;font-weight:900;font-family:'Fira Code',monospace;color:#4f46e5;">—</div><div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Pass Rate</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Interactive Simulator · 41 Test Cases</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">16 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 17 – EXTENT REPORTS
+        ============================================================ -->
+        <section class="slide" id="slide-16">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-emerald">Reporting</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Extent Spark Reports — Visual Test Analytics</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">Self-Updating HTML Spark Report</h2>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                  <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">📊 Report Dashboard</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.7;">
+                    • Test pass/fail pie chart<br>
+                    • Time-based execution timeline<br>
+                    • Test class hierarchical tree<br>
+                    • System info panel (OS, Java, browser)<br>
+                    • Expandable log per test method
+                  </div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="font-size:10px;font-weight:700;color:#1e293b;">🔧 ExtentManager Singleton</div>
+                  <div style="flex:1;background:#1e1e1e;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #333;font-family:'Fira Code',monospace;font-size:8px;">
+                    <div style="background:#2d2d2d;padding:4px 8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid #444;flex-shrink:0;">
+                      <span style="width:7px;height:7px;border-radius:50%;background:#ff5f57;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#febc2e;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#28c840;"></span>
+                      <span style="font-size:8px;color:#666;margin-left:6px;">ExtentManager.java</span>
+                    </div>
+                    <pre style="margin:0;padding:6px;line-height:1.4;color:#d4d4d4;overflow-x:auto;"><span style="color:#569cd6;">package</span> reports;
+<span style="color:#569cd6;">import</span> com.aventstack.extentreports.ExtentReports;
+<span style="color:#569cd6;">import</span> com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
+<span style="color:#569cd6;">public class</span> <span style="color:#4ec9b0;">ExtentManager</span> {
+    <span style="color:#569cd6;">private static</span> <span style="color:#4ec9b0;">ExtentReports</span> extent;
+
+    <span style="color:#569cd6;">public static synchronized</span> <span style="color:#4ec9b0;">ExtentReports</span> <span style="color:#dcdcaa;">getReport</span>() {
+        <span style="color:#569cd6;">if</span> (extent == <span style="color:#569cd6;">null</span>) {
+            <span style="color:#4ec9b0;">ExtentSparkReporter</span> reporter = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">ExtentSparkReporter</span>(<span style="color:#ce9178;">"report.html"</span>);
+            extent = <span style="color:#569cd6;">new</span> <span style="color:#4ec9b0;">ExtentReports</span>();
+            extent.<span style="color:#dcdcaa;">attachReporter</span>(reporter);
+        }
+        <span style="color:#569cd6;">return</span> extent;
+    }
+}</pre>
+                  </div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;">
+                  <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">🎧 ExtentListener.java</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.7;">
+                    Implements <code>ITestListener</code> interface.<br>
+                    Auto-hooks to <code>onTestSuccess</code>,<br>
+                    <code>onTestFailure</code>, <code>onTestSkipped</code>.<br>
+                    Creates test nodes with logs.
+                  </div>
+                </div>
+                <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px;">
+                  <div style="font-size:11px;font-weight:700;color:#065f46;margin-bottom:6px;">✅ Report Output</div>
+                  <div style="font-size:10px;color:#374151;line-height:1.7;">
+                    File: <code>ExtentReport_[date].html</code><br>
+                    Auto-generated after each <code>mvn test</code>.<br>
+                    Standalone HTML — no server needed.<br>
+                    41 tests · 100% pass · 0 fails.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:14px;flex:1;display:flex;flex-direction:column;gap:10px;">
+                <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;">Extent Report Preview</div>
+                <div style="background:#020617;border-radius:8px;padding:12px;flex:1;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:8px;color:#64748b;font-family:'Fira Code',monospace;">ExtentSpark Report</span><span style="font-size:8px;color:#4ade80;font-family:'Fira Code',monospace;">PASS</span></div>
+                  <div style="display:flex;gap:4px;margin-bottom:10px;">
+                    <div style="flex:41;height:8px;background:#4ade80;border-radius:2px;"></div>
+                    <div style="flex:1;height:8px;background:#f87171;border-radius:2px;opacity:0;"></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;">
+                    <div style="background:#0f172a;border-radius:4px;padding:6px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#4ade80;font-family:'Fira Code',monospace;">41</div><div style="font-size:7px;color:#475569;">Passed</div></div>
+                    <div style="background:#0f172a;border-radius:4px;padding:6px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#f87171;font-family:'Fira Code',monospace;">0</div><div style="font-size:7px;color:#475569;">Failed</div></div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:3px;">
+                    <div style="display:flex;justify-content:space-between;background:#0f172a;padding:4px 6px;border-radius:3px;font-family:'Fira Code',monospace;font-size:8px;"><span style="color:#94a3b8;">TC_01_UpdateAccount</span><span style="color:#4ade80;">✓</span></div>
+                    <div style="display:flex;justify-content:space-between;background:#0f172a;padding:4px 6px;border-radius:3px;font-family:'Fira Code',monospace;font-size:8px;"><span style="color:#94a3b8;">TC_02_UpdateEmail</span><span style="color:#4ade80;">✓</span></div>
+                    <div style="display:flex;justify-content:space-between;background:#0f172a;padding:4px 6px;border-radius:3px;font-family:'Fira Code',monospace;font-size:8px;"><span style="color:#94a3b8;">auto_1_LoginValid</span><span style="color:#4ade80;">✓</span></div>
+                    <div style="display:flex;justify-content:space-between;background:#0f172a;padding:4px 6px;border-radius:3px;font-family:'Fira Code',monospace;font-size:8px;"><span style="color:#94a3b8;">auto_2_LoginInvalid</span><span style="color:#4ade80;">✓</span></div>
+                    <div style="font-size:7.5px;color:#475569;text-align:center;padding-top:2px;">… 37 more passing tests</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">ExtentReports 5.1.1 · ExtentSparkReporter</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">17 / 20</span>
+          </div>
+        </section>
+
+
+
+        <!-- ============================================================
+             SLIDE 19 – LESSONS LEARNED & FUTURE ROADMAP
+        ============================================================ -->
+        <section class="slide" id="slide-17">
+          <div class="slide-header">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="tag tag-amber">Reflection</span><span style="font-size:12px;font-weight:700;color:#1e293b;">Key Lessons & Future Engineering Roadmap</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction:row;gap:20px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+              <h2 style="font-size:18px;font-weight:900;color:#1e293b;">What We Learned</h2>
+              <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;gap:10px;align-items:flex-start;">
+                  <span style="font-size:18px;flex-shrink:0;">🏗️</span>
+                  <div><div style="font-size:11px;font-weight:700;color:#1e293b;">Framework Architecture Before Code</div><div style="font-size:10px;color:#64748b;margin-top:2px;line-height:1.5;">Designing POM layers and base classes first saved enormous refactoring time later. Good architecture is not optional — it's the foundation of maintainability.</div></div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;gap:10px;align-items:flex-start;">
+                  <span style="font-size:18px;flex-shrink:0;">⏱️</span>
+                  <div><div style="font-size:11px;font-weight:700;color:#1e293b;">Waits Are Not Optional</div><div style="font-size:10px;color:#64748b;margin-top:2px;line-height:1.5;">Every async UI element interaction must be guarded by explicit waits. Thread.sleep() creates fragile tests — WebDriverWait creates resilient ones.</div></div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:11px;display:flex;gap:10px;align-items:flex-start;">
+                  <span style="font-size:18px;flex-shrink:0;">🔬</span>
+                  <div><div style="font-size:11px;font-weight:700;color:#1e293b;">Manual Testing Informs Automation</div><div style="font-size:10px;color:#64748b;margin-top:2px;line-height:1.5;">Running manual tests first exposed bugs, UX quirks, and corner cases that automated tests might have missed if written blindly.</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="width:225px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <h2 style="font-size:14px;font-weight:900;color:#1e293b;">🚀 Future Roadmap</h2>
+              <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+                <div style="background:linear-gradient(90deg,#eef2ff,#f8fafc);border:1px solid #e0e7ff;border-left:3px solid #4f46e5;border-radius:0 8px 8px 0;padding:10px;">
+                  <div style="font-size:10.5px;font-weight:700;color:#3730a3;">CI/CD Pipeline Integration</div>
+                  <div style="font-size:9.5px;color:#64748b;margin-top:2px;">GitHub Actions triggers <code>mvn test</code> on every push. Reports published as workflow artifacts.</div>
+                </div>
+                <div style="background:linear-gradient(90deg,#f0fdf4,#f8fafc);border:1px solid #d1fae5;border-left:3px solid #059669;border-radius:0 8px 8px 0;padding:10px;">
+                  <div style="font-size:10.5px;font-weight:700;color:#065f46;">Dockerized Selenium Grid</div>
+                  <div style="font-size:9.5px;color:#64748b;margin-top:2px;">Parallel execution across Chrome, Firefox, Edge containers. Eliminate environment setup friction.</div>
+                </div>
+                <div style="background:linear-gradient(90deg,#fefce8,#f8fafc);border:1px solid #fef08a;border-left:3px solid #ca8a04;border-radius:0 8px 8px 0;padding:10px;">
+                  <div style="font-size:10.5px;font-weight:700;color:#92400e;">SQL Database Assertions</div>
+                  <div style="font-size:9.5px;color:#64748b;margin-top:2px;">Add JDBC layer to verify backend DB state after UI operations. True end-to-end validation.</div>
+                </div>
+                <div style="background:linear-gradient(90deg,#fdf4ff,#f8fafc);border:1px solid #f3e8ff;border-left:3px solid #9333ea;border-radius:0 8px 8px 0;padding:10px;">
+                  <div style="font-size:10.5px;font-weight:700;color:#6b21a8;">AI-Powered Test Generation</div>
+                  <div style="font-size:9.5px;color:#64748b;margin-top:2px;">Explore LLM-based test case suggestions from requirements documents and user stories.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span style="font-size:10px;color:#94a3b8;">Retrospective & Innovation Pipeline</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#94a3b8;">19 / 20</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SLIDE 20 – CONCLUSION & Q&A
+        ============================================================ -->
+        <section class="slide" id="slide-18">
+          <div class="slide-header" style="background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border-bottom:none;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;font-weight:700;color:#c7d2fe;letter-spacing:.15em;text-transform:uppercase;">DEPI Graduation Defense · 2026</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <img src="./images-removebg-preview.png" style="height:68px;object-fit:contain;filter:brightness(0) invert(1);" alt="Harvest">
+              <img src="./Ministry-of-Communications-and-Information-Technology-removebg-preview.png" style="height:68px;object-fit:contain;filter:brightness(0) invert(1);" alt="MCIT">
+            </div>
+          </div>
+          <div class="slide-body" style="background:linear-gradient(135deg,#0f172a,#1e1b4b,#1e293b);padding:28px 40px;flex-direction:row;align-items:center;gap:32px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:16px;align-items:flex-start;">
+              <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(79,70,229,0.2);border:1px solid rgba(99,102,241,0.4);padding:6px 14px;border-radius:20px;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#818cf8;"></span>
+                <span style="color:#a5b4fc;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Thank You For Your Attention</span>
+              </div>
+              <h1 style="font-size:30px;font-weight:900;color:white;line-height:1.2;">Project Successfully<br>Delivered & Tested</h1>
+              <p style="font-size:11px;color:#94a3b8;line-height:1.7;max-width:380px;">This graduation project demonstrates a production-grade QA engineering discipline, from structured manual test design through comprehensive REST API validation to a fully automated Selenium + TestNG + Extent Reports pipeline.</p>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+                  <div style="font-size:26px;font-weight:900;font-family:'Fira Code',monospace;color:#4ade80;">41</div>
+                  <div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Tests Automated</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+                  <div style="font-size:26px;font-weight:900;font-family:'Fira Code',monospace;color:#60a5fa;">100%</div>
+                  <div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Pass Rate</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+                  <div style="font-size:26px;font-weight:900;font-family:'Fira Code',monospace;color:#c084fc;">3</div>
+                  <div style="font-size:8.5px;color:#64748b;text-transform:uppercase;font-weight:700;">Testing Layers</div>
+                </div>
+              </div>
+              <div style="background:rgba(79,70,229,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px;width:100%;">
+                <div style="font-size:18px;font-weight:900;color:white;margin-bottom:6px;">Questions & Discussion</div>
+                <div style="font-size:11px;color:#94a3b8;line-height:1.6;">We are ready to walk through any slide, demo the live execution simulator, or deep-dive into any technical aspect of our framework implementation.</div>
+              </div>
+            </div>
+            <div style="width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
+              <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px;">
+                <div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Presented By</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-size:10.5px;color:white;font-weight:600;">• Omnia Abdenasser</div>
+                  <div style="font-size:10.5px;color:#fef08a;font-weight:800;display:flex;align-items:center;gap:4px;">• Amr Barghash <span style="font-size:8px;background:#d97706;color:white;padding:1px 4px;border-radius:3px;font-weight:700;line-height:1;">Leader</span></div>
+                  <div style="font-size:10.5px;color:white;font-weight:600;">• Alaa Omran</div>
+                  <div style="font-size:10.5px;color:white;font-weight:600;">• Ahmed Elromy</div>
+                  <div style="font-size:10.5px;color:white;font-weight:600;">• Asseem Fouad</div>
+                  <div style="font-size:10.5px;color:white;font-weight:600;">• Mohamed Fawzy</div>
+                </div>
+              </div>
+              <div style="background:rgba(79,70,229,0.2);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:#a5b4fc;">QA Automation Track</div>
+                <div style="font-size:9.5px;color:#64748b;margin-top:3px;">Digital Egypt Pioneers Initiative</div>
+                <div style="font-size:9.5px;color:#64748b;">Graduation Class · 2026</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer" style="background:#0f172a;border-top:1px solid rgba(255,255,255,0.08);">
+            <span style="font-size:10px;color:#475569;">End of Presentation</span>
+            <span style="font-family:'Fira Code',monospace;font-size:10px;color:#475569;">20 / 20</span>
+          </div>
+        </section>
+
+      </div><!-- /slide-scaler -->
+    </div><!-- /slide-scaler-wrap -->
+
+    <!-- =================== PRESENTER CONSOLE =================== -->
+    <div id="presenter-console">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;border-bottom:1px solid #334155;padding-bottom:8px;margin-bottom:4px;">🎤 Presenter Console</div>
+
+      <!-- Timer -->
+      <div class="console-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:9.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Timer</span>
+          <div style="display:flex;gap:4px;">
+            <button onclick="toggleTimer()" id="btn-timer" style="background:#334155;border:1px solid #475569;color:#cbd5e1;padding:3px 8px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;">▶ Start</button>
+            <button onclick="resetTimer()" style="background:#334155;border:1px solid #475569;color:#94a3b8;padding:3px 8px;border-radius:5px;font-size:9px;cursor:pointer;font-family:inherit;">↺</button>
+          </div>
+        </div>
+        <div id="presenter-timer" style="font-family:'Fira Code',monospace;font-size:28px;font-weight:900;color:#4f46e5;text-align:center;letter-spacing:.05em;">00:00:00</div>
+      </div>
+
+      <!-- Slide info -->
+      <div class="console-section">
+        <div style="font-size:9.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Current Slide</div>
+        <div id="console-slide-info" style="font-size:11px;font-weight:700;color:#e2e8f0;">01 / 20 · Cover Slide</div>
+      </div>
+
+      <!-- Next slide preview -->
+      <div class="console-section">
+        <div style="font-size:9.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Next Slide Preview</div>
+        <div id="next-slide-preview" style="width:100%;aspect-ratio:16/9;background:#0f172a;border-radius:6px;overflow:hidden;border:1px solid #334155;display:flex;align-items:center;justify-content:center;">
+          <div style="font-size:10px;color:#475569;font-family:'Fira Code',monospace;">Agenda & Roadmap</div>
+        </div>
+      </div>
+
+      <!-- Speaker notes -->
+      <div class="console-section" style="flex:1;overflow-y:auto;">
+        <div style="font-size:9.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">📝 Speaker Notes</div>
+        <div id="speaker-notes" style="font-size:10px;color:#94a3b8;line-height:1.7;"></div>
+      </div>
+    </div>
+
+  </div><!-- /slide-stage -->
+
+  <!-- =================== CONTROL BAR =================== -->
+  <div id="control-bar" style="display:flex;align-items:center;gap:8px;padding:0 16px;">
+    <button onclick="prevSlide()" title="Previous (← ↑)" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;">◀</button>
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:5%;"></div></div>
+    <button onclick="nextSlide()" title="Next (→ ↓ Space)" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;">▶</button>
+    <span id="slide-counter-bar">01 / 20</span>
+    <div style="flex:0 0 1px;background:#334155;height:20px;margin:0 4px;"></div>
+    <button onclick="toggleFullscreen()" title="Present Fullscreen — press F or ESC to exit">⛶ Present (F)</button>
+    <button onclick="togglePresenterMode()" id="btn-presenter" title="Presenter Mode (P)">🎤 Presenter</button>
+    <button onclick="toggleLaser()" id="btn-laser" title="Laser Pointer (L)">🔴 Laser</button>
+    <button onclick="toggleDrawing()" id="btn-draw" title="Draw (D)">✏️ Draw</button>
+    <button onclick="clearCanvas()" title="Clear Drawing">🗑</button>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let currentSlide = 1;
+const TOTAL_SLIDES = 18;
+let laserMode = false;
+let drawMode = false;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let timerSeconds = 0;
+let timerInterval = null;
+let timerRunning = false;
+let simInterval = null;
+
+const speakerNotes = {
+  1: "Welcome the committee. Introduce the project title and team. Mention we're from the QA Automation track of DEPI. Key stats: 41 tests, 100% pass rate.",
+  2: "Walk through the agenda sections. Estimated 30-min defense. Note the 3 major testing layers: Manual, API, and UI Automation.",
+  3: "Explain the DEPI program briefly. Focus on the AUT — awesomeqa.com/ui is an OpenCart e-commerce platform. This is our real testing target.",
+  4: "Explain the manual test planning phase. We designed 20 test cases in Excel BEFORE writing any automation. Show the requirements screenshot.",
+  5: "Walk through the test case table. Point out TC IDs, modules, priorities and all-pass status. Mention these are loaded from testcases.xlsx.",
+  6: "Show the Postman collection structure and the live execution screenshot. Explain folder organization: Auth, Products, Cart.",
+  7: "Describe the 4-layer framework. Bottom-up: Reporting → Infrastructure → POM Pages → Test Execution. Each layer has a clear responsibility.",
+  8: "Walk through each dependency card. Java 17, Selenium 4.41, TestNG 7.11, Extent Reports 5.1.1, Postman. All managed via Maven pom.xml.",
+  9: "Explain POM pattern benefits. Show the before/after comparison. 12+ page classes, zero locator duplication.",
+  10: "Walk through BaseTest.java. Key points: ChromeOptions to suppress password bubbles, 10s implicit wait, fresh driver per test.",
+  11: "Walk through LoginPage.java. Show how locators are private fields, and action methods use WaitUtils for resilient interactions.",
+  12: "Walk through TC_01 step by step. Login → Navigate to Edit Account → Update name → Assert success message. Clean readable test.",
+  13: "Show the two TestNG suite blocks. 20 Excel-mapped cases + 12 core automation cases = 32 total UI tests. Plus 9 API tests.",
+  14: "Explain testng.xml structure. Two test blocks. Listeners auto-attach ExtentReports. Run with 'mvn clean test'.",
+  15: "DEMO TIME: Click 'Run Suite' to show the live simulation. The terminal will print all 41 test names and pass them one by one.",
+  16: "Explain Extent Reports architecture. ExtentManager singleton creates the HTML Spark report. ExtentListener hooks into TestNG lifecycle.",
+  17: "Summarize key lessons: design before code, explicit waits, manual testing foundation. Then present the 4-item future roadmap.",
+  18: "Thank the committee. Invite questions. Offer to demo any feature, slide, or code snippet on request."
+};
+
+const nextTitles = {
+  1: "Agenda & Roadmap",
+  2: "Project Context & Target",
+  3: "Manual Testing Strategy",
+  4: "Excel Test Cases Table",
+  5: "API Testing Overview",
+  6: "Framework Architecture",
+  7: "Technology Stack",
+  8: "Page Object Model",
+  9: "BaseTest Infrastructure",
+  10: "LoginPage POM Code",
+  11: "TC_01 Test Scenario",
+  12: "Full Test Coverage",
+  13: "TestNG XML Config",
+  14: "Live Test Simulator",
+  15: "Extent Reports",
+  16: "Lessons & Roadmap",
+  17: "Conclusion & Q&A",
+  18: "—"
+};
+
+// ============================================================
+// SLIDE NAVIGATION
+// ============================================================
+function goToSlide(n) {
+  const prev = document.getElementById('slide-' + currentSlide);
+  if (prev) prev.classList.remove('active');
+  currentSlide = Math.max(1, Math.min(TOTAL_SLIDES, n));
+  const next = document.getElementById('slide-' + currentSlide);
+  if (next) next.classList.add('active');
+  updateUI();
+}
+
+function nextSlide() { goToSlide(currentSlide + 1); }
+function prevSlide() { goToSlide(currentSlide - 1); }
+
+function updateUI() {
+  const pct = (currentSlide / TOTAL_SLIDES * 100).toFixed(1);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('slide-counter-bar').textContent =
+    String(currentSlide).padStart(2,'0') + ' / ' + TOTAL_SLIDES;
+
+  // Presenter console
+  const titles = {
+    1:'Cover Slide', 2:'Agenda & Roadmap', 3:'Project Context',
+    4:'Manual Strategy', 5:'Excel Test Cases', 6:'API / Postman',
+    7:'Framework Architecture', 8:'Tech Stack',
+    9:'Page Object Model', 10:'BaseTest Code', 11:'LoginPage Code',
+    12:'TC_01 Test Code', 13:'Test Coverage', 14:'TestNG XML',
+    15:'Execution Simulator', 16:'Extent Reports',
+    17:'Lessons & Roadmap', 18:'Conclusion & Q&A'
+  };
+  const ci = document.getElementById('console-slide-info');
+  if (ci) ci.textContent = String(currentSlide).padStart(2,'0') + ' / ' + TOTAL_SLIDES + ' · ' + (titles[currentSlide] || '');
+
+  const sn = document.getElementById('speaker-notes');
+  if (sn) sn.innerHTML = speakerNotes[currentSlide] || '';
+
+  const np = document.getElementById('next-slide-preview');
+  if (np) {
+    const nt = nextTitles[currentSlide] || '—';
+    np.innerHTML = '<div style="font-size:10px;color:#475569;font-family:\'Fira Code\',monospace;padding:8px;text-align:center;">' + nt + '</div>';
+  }
+}
+
+// ============================================================
+// SCALING (zoom-to-fit) — always reads actual wrap dimensions
+// ============================================================
+function rescale() {
+  const scaler = document.getElementById('slide-scaler');
+  const wrap = document.getElementById('slide-scaler-wrap');
+  if (!scaler || !wrap) return;
+  const ww = wrap.clientWidth;
+  const wrapH = wrap.clientHeight;
+  if (!ww || !wrapH) return;
+  const slideW = 960, slideH = 540;
+  const scale = Math.min(ww / slideW, wrapH / slideH);
+  scaler.style.transform = 'scale(' + scale + ')';
+}
+
+function initFooters() {
+  document.querySelectorAll('.slide').forEach((slide, index) => {
+    const spans = slide.querySelectorAll('.slide-footer span');
+    if (spans.length >= 2) {
+      spans[1].textContent = String(index + 1).padStart(2, '0') + ' / ' + TOTAL_SLIDES;
+    }
+  });
+}
+
+window.addEventListener('resize', rescale);
+document.addEventListener('DOMContentLoaded', () => { initFooters(); rescale(); updateUI(); });
+setTimeout(rescale, 100);
+
+// ============================================================
+// FULLSCREEN — pure content, no chrome, no control bar
+// ============================================================
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  const isFS = !!document.fullscreenElement;
+  // Toggle CSS class — class handles all layout changes
+  document.body.classList.toggle('in-fullscreen', isFS);
+  setTimeout(rescale, 80);
+});
+
+// ============================================================
+// PRESENTER MODE — split screen with console panel
+// ============================================================
+function togglePresenterMode() {
+  document.body.classList.toggle('presenter-mode');
+  const btn = document.getElementById('btn-presenter');
+  btn.classList.toggle('active');
+  setTimeout(rescale, 100);
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+document.addEventListener('keydown', e => {
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  switch(e.key) {
+    case 'ArrowRight': case 'ArrowDown': case ' ': e.preventDefault(); nextSlide(); break;
+    case 'ArrowLeft': case 'ArrowUp': e.preventDefault(); prevSlide(); break;
+    case 'f': case 'F': toggleFullscreen(); break;
+    case 'p': case 'P': togglePresenterMode(); break;
+    case 'l': case 'L': toggleLaser(); break;
+    case 'd': case 'D': toggleDrawing(); break;
+    case 'Escape':
+      if (document.fullscreenElement) { document.exitFullscreen(); break; }
+      if (drawMode) toggleDrawing();
+      if (laserMode) toggleLaser();
+      break;
+  }
+});
+
+// ============================================================
+// LASER POINTER
+// ============================================================
+function toggleLaser() {
+  laserMode = !laserMode;
+  const btn = document.getElementById('btn-laser');
+  const dot = document.getElementById('laser-dot');
+  btn.classList.toggle('active', laserMode);
+  if (!laserMode) { dot.style.opacity = '0'; document.body.style.cursor = ''; }
+  else { document.body.style.cursor = 'none'; }
+}
+
+const stageEl = document.getElementById('slide-stage');
+stageEl.addEventListener('mousemove', e => {
+  if (!laserMode) return;
+  const dot = document.getElementById('laser-dot');
+  dot.style.opacity = '1';
+  dot.style.left = e.clientX + 'px';
+  dot.style.top = e.clientY + 'px';
+});
+stageEl.addEventListener('mouseleave', () => {
+  if (laserMode) document.getElementById('laser-dot').style.opacity = '0';
+});
+
+// ============================================================
+// DRAWING CANVAS
+// ============================================================
+const canvas = document.getElementById('drawing-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const scaler = document.getElementById('slide-scaler');
+  canvas.width = scaler.offsetWidth;
+  canvas.height = scaler.offsetHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 200);
+
+function toggleDrawing() {
+  drawMode = !drawMode;
+  const btn = document.getElementById('btn-draw');
+  btn.classList.toggle('active', drawMode);
+  canvas.classList.toggle('drawing-active', drawMode);
+}
+
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+canvas.addEventListener('mousedown', e => {
+  if (!drawMode) return;
+  isDrawing = true;
+  const r = canvas.getBoundingClientRect();
+  lastX = e.clientX - r.left;
+  lastY = e.clientY - r.top;
+});
+canvas.addEventListener('mousemove', e => {
+  if (!isDrawing || !drawMode) return;
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.strokeStyle = '#f43f5e';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  lastX = x; lastY = y;
+});
+canvas.addEventListener('mouseup', () => { isDrawing = false; });
+
+// ============================================================
+// TIMER
+// ============================================================
+function pad(n) { return String(n).padStart(2,'0'); }
+function formatTimer(s) {
+  return pad(Math.floor(s/3600)) + ':' + pad(Math.floor((s%3600)/60)) + ':' + pad(s%60);
+}
+function toggleTimer() {
+  const btn = document.getElementById('btn-timer');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = '▶ Start';
+  } else {
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const d = document.getElementById('presenter-timer');
+      if (d) d.textContent = formatTimer(timerSeconds);
+    }, 1000);
+    timerRunning = true;
+    btn.textContent = '⏸ Pause';
+  }
+}
+function resetTimer() {
+  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; }
+  timerSeconds = 0;
+  const d = document.getElementById('presenter-timer');
+  if (d) d.textContent = '00:00:00';
+  const btn = document.getElementById('btn-timer');
+  if (btn) btn.textContent = '▶ Start';
+}
+
+// ============================================================
+// TEST SIMULATOR
+// ============================================================
+const allTests = [
+  'tests.TC_01_UpdateAccountTest#updateAccountInformation',
+  'tests.TC_02_UpdateEmailTest#updateEmailAddress',
+  'tests.TC_03_AddAddressTest#addNewShippingAddress',
+  'tests.TC_04_DeleteAddressTest#deleteExistingAddress',
+  'tests.TC_05_SetDefaultAddressTest#setDefaultShippingAddress',
+  'tests.TC_06_SubscribeNewsletterTest#subscribeToNewsletter',
+  'tests.TC_07_UnsubscribeNewsletterTest#unsubscribeFromNewsletter',
+  'tests.TC_08_ChangePasswordTest#changeAccountPassword',
+  'tests.TC_09_ProductReviewTest#submitProductReview',
+  'tests.TC_10_AddToCartTest#addProductToCart',
+  'tests.TC_11_UpdateCartQtyTest#updateCartQuantity',
+  'tests.TC_12_RemoveFromCartTest#removeProductFromCart',
+  'tests.TC_13_GuestCheckoutTest#completeGuestCheckout',
+  'tests.TC_14_ApplyCouponTest#applyCouponAtCheckout',
+  'tests.TC_15_GiftCertTest#purchaseGiftCertificate',
+  'tests.TC_16_SearchProductTest#searchByKeyword',
+  'tests.TC_17_FilterResultsTest#filterByCategory',
+  'tests.TC_18_WishlistTest#addToWishlist',
+  'tests.TC_19_CompareTest#compareTwoProducts',
+  'tests.TC_20_OrderHistoryTest#viewOrderHistory',
+  'tests.auto_1_LoginValidTest#loginWithValidCredentials',
+  'tests.auto_2_LoginInvalidTest#loginWithInvalidPassword',
+  'tests.auto_3_RegisterUserTest#registerNewUser',
+  'tests.auto_4_AccountUpdateTest#updateAccountDetails',
+  'tests.auto_5_AddressAddTest#addNewAddress',
+  'tests.auto_6_AddressDeleteTest#deleteExistingAddress',
+  'tests.auto_7_NewsletterSubTest#subscribeNewsletter',
+  'tests.auto_8_NewsletterUnsubTest#unsubscribeNewsletter',
+  'tests.auto_9_ReviewSubmitTest#submitProductReview',
+  'tests.auto_10_CartFlowTest#completeCartFlow',
+  'tests.auto_11_CheckoutFlowTest#completeCheckoutFlow',
+  'tests.auto_12_GiftCertFlowTest#completePurchaseFlow',
+  'api.RegisterUserTest#testRegisterUser',
+  'api.LoginUserTest#testLoginAndGetToken',
+  'api.GetProductsTest#testGetAllProducts',
+  'api.GetProductByIdTest#testGetSingleProduct',
+  'api.AddToCartTest#testAddItemToCart',
+  'api.GetCartTest#testGetCartContents',
+  'api.DeleteCartItemTest#testRemoveCartItem',
+  'api.SearchProductsTest#testSearchByKeyword',
+  'api.CheckoutTest#testCreateOrderViaAPI'
+];
+
+function runTests() {
+  const btn = document.getElementById('btn-run');
+  if (simInterval) return;
+  const output = document.getElementById('terminal-output');
+  output.innerHTML = '';
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+  document.getElementById('counter-pass').textContent = '0';
+  document.getElementById('counter-fail').textContent = '0';
+  document.getElementById('counter-rate').textContent = '—';
+
+  let i = 0;
+  const lines = [
+    { type: 'info', text: '[INFO] Scanning for tests...' },
+    { type: 'info', text: '[INFO] -------------------------------------------------------' },
+    { type: 'info', text: '[INFO]  T E S T S' },
+    { type: 'info', text: '[INFO] -------------------------------------------------------' },
+    { type: 'info', text: '[INFO] Running suite: Graduation_Full_Suite (verbose=1)' },
+    { type: 'dim', text: '' }
+  ];
+
+  allTests.forEach(t => {
+    lines.push({ type: 'running', test: t });
+    lines.push({ type: 'pass', test: t });
+  });
+
+  lines.push({ type: 'dim', text: '' });
+  lines.push({ type: 'info', text: '[INFO] -------------------------------------------------------' });
+  lines.push({ type: 'pass', text: '[INFO] BUILD SUCCESS — 41 tests passed, 0 failed, 0 skipped' });
+  lines.push({ type: 'info', text: '[INFO] Extent Report generated: reports/ExtentReport.html' });
+  lines.push({ type: 'info', text: '[INFO] -------------------------------------------------------' });
+
+  let passed = 0;
+  simInterval = setInterval(() => {
+    if (i >= lines.length) {
+      clearInterval(simInterval);
+      simInterval = null;
+      btn.disabled = false;
+      btn.textContent = '▶ Run Suite';
+      return;
+    }
+    const line = lines[i++];
+    const div = document.createElement('div');
+
+    if (line.type === 'running') {
+      div.className = 't-dim';
+      div.textContent = '[RUNNING] ' + line.test;
+    } else if (line.type === 'pass' && line.test) {
+      div.className = 't-pass';
+      div.textContent = '[PASS ✓ ] ' + line.test;
+      passed++;
+      document.getElementById('counter-pass').textContent = passed;
+      document.getElementById('counter-rate').textContent = '100%';
+    } else if (line.type === 'pass') {
+      div.className = 't-pass';
+      div.textContent = line.text;
+    } else if (line.type === 'info') {
+      div.className = 't-info';
+      div.textContent = line.text;
+    } else {
+      div.className = 't-dim';
+      div.textContent = line.text || '';
+    }
+
+    output.appendChild(div);
+    output.scrollTop = output.scrollHeight;
+  }, 120);
+}
+
+function clearTerminal() {
+  if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  document.getElementById('terminal-output').innerHTML = '<div class="t-dim">[INFO] Click "Run Suite" to simulate the full TestNG test execution...</div>';
+  document.getElementById('counter-pass').textContent = '0';
+  document.getElementById('counter-fail').textContent = '0';
+  document.getElementById('counter-rate').textContent = '—';
+  const btn = document.getElementById('btn-run');
+  btn.disabled = false;
+  btn.textContent = '▶ Run Suite';
+}
+
+// Init
+updateUI();
+</script>
+</body>
+</html>

@@ -6,8 +6,8 @@ This is a comprehensive Web Automation Testing project built as a Graduation Pro
 
 ## 👥 Team Members
 
+*   **Amr Mohamed barghash** (Team Leader) 👑
 *   **Omnia Abdenasser Mohamed**
-*   **Amr Mohamed barghash**
 *   **Alaa Mahmoud omran**
 *   **Ahemd Tamer Elromy**
 *   **Asseem mostafa fouad**
@@ -31,6 +31,10 @@ This is a comprehensive Web Automation Testing project built as a Graduation Pro
 ```text
 Graduation_pro/
 │
+├── presentation/               # Interactive HTML defense presentation & assets
+│   ├── presentation.html       # The main presentation file
+│   └── ...                     # Presentation assets (images, screenshots)
+│
 ├── src/
 │   └── test/
 │       └── java/
@@ -45,6 +49,15 @@ Graduation_pro/
 ├── pom.xml                     # Maven dependencies configuration
 └── report.html                 # Final generated interactive HTML Extent Report
 ```
+
+---
+
+## 📊 Project Presentation
+
+We have designed a custom interactive HTML presentation for the graduation defense, complete with project details, a test execution simulator, and the framework architecture walkthrough.
+
+*   **File Path:** `presentation/presentation.html`
+*   **To Run:** Open `presentation.html` in Chrome or any modern web browser to view the slides and interact with the execution simulator.
 
 ---
 
