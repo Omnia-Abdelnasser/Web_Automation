@@ -6,7 +6,7 @@ This is a comprehensive Web Automation Testing project built as a Graduation Pro
 
 ## 👥 Team Members
 
-*   **Amr Mohamed barghash** (Team Leader) 👑
+*   **Amr Mohamed barghash** (Team Leader)
 *   **Omnia Abdenasser Mohamed**
 *   **Alaa Mahmoud omran**
 *   **Ahemd Tamer Elromy**
